@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../routes/app_routes.dart';
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -10,67 +10,68 @@ class LoginPage extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // Parte de arriba con imágenes
+          // 📌 Grid de imágenes
           Expanded(
-            flex: 5,
+            flex: 2,
             child: GridView.count(
+              padding: EdgeInsets.zero,
               crossAxisCount: 3,
-              physics: const NeverScrollableScrollPhysics(),
               children: List.generate(9, (index) {
                 return Image.asset(
-                  'assets/img/${index + 1}.jpg',
+                  "assets/images/img${index + 1}.jpg",
                   fit: BoxFit.cover,
                 );
               }),
             ),
           ),
-          // Parte de abajo con botones
+          // 📌 Texto de bienvenida
           Expanded(
-            flex: 4,
+            flex: 1,
             child: Container(
+              width: double.infinity,
               padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
+              ),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
-                    "Bienvenido a\nReservaSports",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black),
+                    "Bienvenido a",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  const Text(
+                    "ReservaSports",
+                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
                   const Text(
                     "Tu mejor aliado para practicar fútbol en Valledupar",
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    style: TextStyle(color: Colors.grey),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(context, AppRoutes.sedes);
-                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 80, vertical: 15),
+                      padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 15),
                     ),
-                    child: const Text("Usuario",
-                        style: TextStyle(color: Colors.white)),
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(context, AppRoutes.sedes);
+                    },
+                    child: const Text("Usuario"),
                   ),
                   const SizedBox(height: 10),
                   TextButton(
-                    onPressed: () {
-                      // Aquí más adelante va el login administrador
-                    },
-                    child: const Text("Administrador",
-                        style: TextStyle(color: Colors.black)),
-                  ),
+                    onPressed: () {},
+                    child: const Text("Administrador"),
+                  )
                 ],
               ),
             ),
-          ),
+          )
         ],
       ),
     );

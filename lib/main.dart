@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'routes/app_routes.dart';
 
 void main() {
-  runApp(const ReservaSportsApp());
+  runApp(const MyApp());
 }
 
-class ReservaSportsApp extends StatelessWidget {
-  const ReservaSportsApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: "ReservaSports",
+      title: 'ReservaSports',
       theme: ThemeData(
+        textTheme: GoogleFonts.poppinsTextTheme(),
         primarySwatch: Colors.green,
-        fontFamily: 'Poppins',
       ),
       initialRoute: AppRoutes.login,
-      routes: AppRoutes.getRoutes(),
+      routes: AppRoutes.routes,
     );
   }
 }

@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import '../vistas/login.dart';
-import '../vistas/sedes.dart';
+import '../vistas/Sedes.dart';
 import '../vistas/inicio.dart';
 
 class AppRoutes {
-  static const login = '/login';
-  static const sedes = '/sedes';
-  static const inicio = '/inicio';
+  static const String login = '/login';
+  static const String sedes = '/sedes';
+  static const String inicio = '/inicio';
 
-  static Map<String, WidgetBuilder> getRoutes() {
-    return {
-      login: (context) => const LoginPage(),
-      sedes: (context) => const SedesPage(),
-      inicio: (context) => const InicioPage(),
-    };
-  }
+  static Map<String, WidgetBuilder> routes = {
+    login: (context) => const LoginScreen(),
+    sedes: (context) => const SedesScreen(),
+    inicio: (context) => const InicioScreen(),
+  };
 }
