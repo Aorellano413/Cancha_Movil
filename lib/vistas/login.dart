@@ -10,7 +10,7 @@ class LoginScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // 📌 Grid de imágenes
+         
           Expanded(
             flex: 2,
             child: GridView.count(
@@ -24,7 +24,7 @@ class LoginScreen extends StatelessWidget {
               }),
             ),
           ),
-          // 📌 Texto de bienvenida
+          
           Expanded(
             flex: 1,
             child: Container(

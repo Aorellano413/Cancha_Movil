@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'reservas.dart'; 
 
 class InicioScreen extends StatelessWidget {
   const InicioScreen({super.key});
@@ -12,11 +13,27 @@ class InicioScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pop(context); 
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ReservasScreen(),
+                  ),
+                );
+              },
               child: const Text("Cancha Abierta"),
             ),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ReservasScreen(),
+                  ),
+                );
+              },
               child: const Text("Cancha Cerrada"),
             ),
           ],
@@ -65,8 +82,13 @@ class InicioScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCard(BuildContext context,
-      {required String image, required String title, required String price, required String horario}) {
+  Widget _buildCard(
+    BuildContext context, {
+    required String image,
+    required String title,
+    required String price,
+    required String horario,
+  }) {
     return Card(
       margin: const EdgeInsets.only(bottom: 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -75,32 +97,43 @@ class InicioScreen extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            child: Image.asset(image, height: 180, width: double.infinity, fit: BoxFit.cover),
+            child: Image.asset(
+              image,
+              height: 180,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 5),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.access_time, size: 18, color: Colors.grey),
+                        const Icon(Icons.access_time,
+                            size: 18, color: Colors.grey),
                         const SizedBox(width: 5),
-                        Text(horario, style: const TextStyle(color: Colors.grey)),
+                        Text(horario,
+                            style: const TextStyle(color: Colors.grey)),
                       ],
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         color: Colors.black,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(price, style: const TextStyle(color: Colors.white)),
+                      child: Text(price,
+                          style: const TextStyle(color: Colors.white)),
                     ),
                   ],
                 ),
@@ -108,7 +141,8 @@ class InicioScreen extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green),
                     onPressed: () => _mostrarDialogo(context),
                     child: const Text("Reservar"),
                   ),
