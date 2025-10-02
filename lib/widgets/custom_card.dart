@@ -33,7 +33,12 @@ class CustomCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                  child: Image.asset(imagePath, height: 160, width: double.infinity, fit: BoxFit.cover),
+                  child: Image.asset(
+                    imagePath,
+                    height: 160,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 Positioned(
                   right: 10,
@@ -44,7 +49,10 @@ class CustomCard extends StatelessWidget {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text(tag, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text(
+                      tag,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
               ],
@@ -54,10 +62,19 @@ class CustomCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  Text(subtitle, style: const TextStyle(color: Colors.grey)),
+                  Text(
+                    title,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
                   const SizedBox(height: 5),
-                  Text("Canchas desde: $price", style: const TextStyle(color: Colors.blue)),
+                  Text(
+                    "Canchas desde: $price",
+                    style: const TextStyle(color: Colors.blue),
+                  ),
                 ],
               ),
             )
