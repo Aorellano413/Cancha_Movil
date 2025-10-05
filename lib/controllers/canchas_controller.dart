@@ -6,14 +6,14 @@ import '../models/cancha_model.dart';
 class CanchasController extends ChangeNotifier {
   final List<CanchaModel> _canchas = [
     CanchaModel(
-      image: "assets/images/cancha1.jpg",
+      image: "",
       title: "Cancha Techada",
       price: "\$80.000 COP",
       horario: "6:00 AM - 11:00 PM",
       tipo: TipoCancha.cerrada,
     ),
     CanchaModel(
-      image: "assets/images/cancha2.jpg",
+      image: "",
       title: "Cancha Abierta",
       price: "\$70.000 COP",
       horario: "6:00 AM - 11:00 PM",

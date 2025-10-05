@@ -1,5 +1,3 @@
-// views/inicio_view.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/canchas_controller.dart';
@@ -19,25 +17,21 @@ class InicioView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 45),
-              ),
+              style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 45)),
               onPressed: () {
                 reservaController.setTipoCancha(TipoCancha.abierta);
                 Navigator.pop(context);
-                Navigator.pushNamed(context, AppRoutes.reserva);
+                Navigator.pushNamed(context, AppRoutes.reserva); // Apila Reserva
               },
               child: const Text("Cancha Abierta"),
             ),
             const SizedBox(height: 10),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 45),
-              ),
+              style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 45)),
               onPressed: () {
                 reservaController.setTipoCancha(TipoCancha.cerrada);
                 Navigator.pop(context);
-                Navigator.pushNamed(context, AppRoutes.reserva);
+                Navigator.pushNamed(context, AppRoutes.reserva); // Apila Reserva
               },
               child: const Text("Cancha Cerrada"),
             ),
@@ -52,17 +46,15 @@ class InicioView extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => CanchasController()),
-        ChangeNotifierProvider(create: (_) => ReservaController()),
+        // ReservaController ya viene del main.dart
       ],
       child: Scaffold(
         appBar: AppBar(
           title: const Text("Inicio"),
           centerTitle: true,
-          backgroundColor: Colors.white,
-          elevation: 1,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context), // Regresa a Sedes
           ),
         ),
         body: Consumer2<CanchasController, ReservaController>(
@@ -76,11 +68,7 @@ class InicioView extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 ...canchasController.canchas.map((cancha) {
-                  return _buildCard(
-                    context,
-                    cancha: cancha,
-                    reservaController: reservaController,
-                  );
+                  return _buildCard(context, cancha: cancha, reservaController: reservaController);
                 }),
               ],
             );
@@ -115,10 +103,7 @@ class InicioView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  cancha.title,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
+                Text(cancha.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 5),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -127,10 +112,7 @@ class InicioView extends StatelessWidget {
                       children: [
                         const Icon(Icons.access_time, size: 18, color: Colors.grey),
                         const SizedBox(width: 5),
-                        Text(
-                          cancha.horario,
-                          style: const TextStyle(color: Colors.grey),
-                        ),
+                        Text(cancha.horario, style: const TextStyle(color: Colors.grey)),
                       ],
                     ),
                     Container(
@@ -139,10 +121,7 @@ class InicioView extends StatelessWidget {
                         color: Colors.black,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
-                        cancha.price,
-                        style: const TextStyle(color: Colors.white),
-                      ),
+                      child: Text(cancha.price, style: const TextStyle(color: Colors.white)),
                     ),
                   ],
                 ),
@@ -150,19 +129,14 @@ class InicioView extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                    ),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                     onPressed: () => _mostrarDialogo(context, reservaController),
-                    child: const Text(
-                      "Reservar",
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    child: const Text("Reservar", style: TextStyle(color: Colors.white)),
                   ),
-                )
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

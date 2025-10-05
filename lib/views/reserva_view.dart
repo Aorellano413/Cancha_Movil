@@ -1,4 +1,3 @@
-// views/reserva_view.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/reserva_controller.dart';
@@ -8,20 +7,27 @@ class ReservaView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Aquí usamos un Consumer con ChangeNotifierProvider
+    // para asegurarnos de que siempre haya un ReservaController disponible
     return ChangeNotifierProvider(
       create: (_) => ReservaController(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Reserva de cancha"),
-        ),
-        body: Consumer<ReservaController>(
-          builder: (context, controller, child) {
-            return Padding(
+      child: Consumer<ReservaController>(
+        builder: (context, controller, child) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text("Reserva de cancha"),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context), // Regresa a InicioView
+              ),
+            ),
+            body: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Form(
                 key: controller.formKey,
                 child: ListView(
                   children: [
+                    // Nombre
                     TextFormField(
                       controller: controller.nombreController,
                       decoration: const InputDecoration(
@@ -36,6 +42,7 @@ class ReservaView extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 16),
+                    // Correo
                     TextFormField(
                       controller: controller.correoController,
                       decoration: const InputDecoration(
@@ -54,6 +61,7 @@ class ReservaView extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 16),
+                    // Celular
                     TextFormField(
                       controller: controller.celularController,
                       decoration: const InputDecoration(
@@ -69,6 +77,7 @@ class ReservaView extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 16),
+                    // Fecha
                     ListTile(
                       title: Text(
                         controller.fechaReserva == null
@@ -89,6 +98,7 @@ class ReservaView extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 16),
+                    // Hora
                     DropdownButtonFormField<String>(
                       value: controller.horaSeleccionada,
                       decoration: const InputDecoration(
@@ -103,13 +113,12 @@ class ReservaView extends StatelessWidget {
                       }).toList(),
                       onChanged: (value) => controller.setHoraSeleccionada(value),
                       validator: (value) {
-                        if (value == null) {
-                          return 'Por favor seleccione una hora';
-                        }
+                        if (value == null) return 'Por favor seleccione una hora';
                         return null;
                       },
                     ),
                     const SizedBox(height: 20),
+                    // Política
                     const Text(
                       "Política: Si desea cambiar la fecha, debe hacerlo con al menos 1 hora de anticipación para conservar el abono.",
                       style: TextStyle(
@@ -118,6 +127,7 @@ class ReservaView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 20),
+                    // Botón confirmar
                     ElevatedButton(
                       onPressed: () async {
                         if (controller.formKey.currentState!.validate()) {
@@ -130,7 +140,7 @@ class ReservaView extends StatelessWidget {
                               ),
                             );
                             controller.limpiarFormulario();
-                            Navigator.pop(context);
+                            Navigator.pop(context); 
                           }
                         }
                       },
@@ -139,9 +149,9 @@ class ReservaView extends StatelessWidget {
                   ],
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

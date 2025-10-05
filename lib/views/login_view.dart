@@ -1,5 +1,3 @@
-// views/login_view.dart
-
 import 'package:flutter/material.dart';
 import '../routes/app_routes.dart';
 
@@ -12,7 +10,6 @@ class LoginView extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // Grid de imágenes superior
           Expanded(
             flex: 2,
             child: GridView.count(
@@ -26,8 +23,6 @@ class LoginView extends StatelessWidget {
               }),
             ),
           ),
-          
-          // Sección de bienvenida
           Expanded(
             flex: 1,
             child: Container(
@@ -62,7 +57,7 @@ class LoginView extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 15),
                     ),
                     onPressed: () {
-                      Navigator.pushReplacementNamed(context, AppRoutes.sedes);
+                      Navigator.pushNamed(context, AppRoutes.sedes); // Apila Sedes
                     },
                     child: const Text(
                       "Usuario",
@@ -72,7 +67,7 @@ class LoginView extends StatelessWidget {
                   const SizedBox(height: 10),
                   TextButton(
                     onPressed: () {
-                      // Aquí puedes agregar la funcionalidad de administrador
+                      Navigator.pushNamed(context, AppRoutes.sedes); // Administrador
                     },
                     child: const Text("Administrador"),
                   )
