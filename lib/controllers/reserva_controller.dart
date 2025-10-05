@@ -1,5 +1,3 @@
-// controllers/reserva_controller.dart
-
 import 'package:flutter/material.dart';
 import '../models/reserva_model.dart';
 import '../models/cancha_model.dart';
@@ -65,11 +63,10 @@ class ReservaController extends ChangeNotifier {
     final reserva = crearReserva();
     if (reserva == null) return false;
 
-    // Aquí puedes agregar lógica para guardar en base de datos
-    // o enviar a un API
+   
     print('Reserva confirmada: ${reserva.toJson()}');
     
-    // Simular delay de red
+
     await Future.delayed(const Duration(seconds: 1));
     
     return true;
