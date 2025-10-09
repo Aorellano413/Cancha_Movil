@@ -1,19 +1,17 @@
-
-
 import 'package:flutter/material.dart';
 import '../models/cancha_model.dart';
 
 class CanchasController extends ChangeNotifier {
   final List<CanchaModel> _canchas = [
     CanchaModel(
-      image: "",
+      image: "lib/images/techo.jpg",
       title: "Cancha Techada",
       price: "\$80.000 COP",
       horario: "6:00 AM - 11:00 PM",
       tipo: TipoCancha.cerrada,
     ),
     CanchaModel(
-      image: "",
+      image: "lib/images/sintecho.jpg",
       title: "Cancha Abierta",
       price: "\$70.000 COP",
       horario: "6:00 AM - 11:00 PM",

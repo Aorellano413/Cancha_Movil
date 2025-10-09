@@ -1,19 +1,17 @@
-// controllers/sedes_controller.dart
-
 import 'package:flutter/material.dart';
 import '../models/sede_model.dart';
 
 class SedesController extends ChangeNotifier {
   final List<SedeModel> _todasLasSedes = [
     SedeModel(
-      imagePath: "assets/images/stadium1.jpg",
+      imagePath: "lib/images/5.jpg", 
       title: "Sede - La Jugada",
       subtitle: "Mayales, Valledupar",
       price: "\$70.000",
       tag: "Día - Noche",
     ),
     SedeModel(
-      imagePath: "assets/images/stadium2.jpg",
+      imagePath: "lib/images/4.jpg",
       title: "Sede - Biblos",
       subtitle: "Sabanas, Valledupar",
       price: "\$70.000",

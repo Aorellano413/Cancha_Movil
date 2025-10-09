@@ -14,7 +14,7 @@ class InicioView extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => CanchasController()),
-        // ReservaController ya debe estar provisto en main.dart si quieres mantener estado
+        
       ],
       child: Scaffold(
         appBar: AppBar(
@@ -22,7 +22,7 @@ class InicioView extends StatelessWidget {
           centerTitle: true,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context), // Regresa a SedesView
+            onPressed: () => Navigator.pop(context),
           ),
         ),
         body: Consumer2<CanchasController, ReservaController>(
@@ -109,7 +109,7 @@ class InicioView extends StatelessWidget {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                     onPressed: () {
-                      // Aquí definimos la cancha seleccionada si quieres
+                      
                       reservaController.setTipoCancha(cancha.tipo); 
                       Navigator.pushNamed(context, AppRoutes.reserva);
                     },

@@ -15,7 +15,7 @@ class SedesView extends StatelessWidget {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context), // Regresa a Login
+          onPressed: () => Navigator.pop(context), 
         ),
       ),
       body: Consumer<SedesController>(
@@ -50,7 +50,7 @@ class SedesView extends StatelessWidget {
                         price: sede.price,
                         tag: sede.tag,
                         onTap: () {
-                          Navigator.pushNamed(context, AppRoutes.inicio); // Apila Inicio
+                          Navigator.pushNamed(context, AppRoutes.inicio); 
                         },
                       );
                     },

@@ -9,8 +9,21 @@ class ReservaView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Usamos el controlador global del MultiProvider
     final controller = Provider.of<ReservaController>(context);
+
+    // ✅ Datos estáticos del usuario
+    const String nombreFijo = "Andres Orellano";
+    const String correoFijo = "andresorellano591@gmail.com";
+    const String celularFijo = "3003525431";
+
+    // ✅ Precargamos los datos en los controladores (solo una vez)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (controller.nombreController.text.isEmpty) {
+        controller.nombreController.text = nombreFijo;
+        controller.correoController.text = correoFijo;
+        controller.celularController.text = celularFijo;
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -26,53 +39,40 @@ class ReservaView extends StatelessWidget {
           key: controller.formKey,
           child: ListView(
             children: [
+              // 🔹 Campo nombre (ya lleno)
               TextFormField(
                 controller: controller.nombreController,
                 decoration: const InputDecoration(
                   labelText: "Nombre completo",
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese su nombre';
-                  }
-                  return null;
-                },
+                readOnly: true, // No editable
               ),
               const SizedBox(height: 16),
+
+              // 🔹 Campo correo (ya lleno)
               TextFormField(
                 controller: controller.correoController,
                 decoration: const InputDecoration(
                   labelText: "Correo electrónico",
                   border: OutlineInputBorder(),
                 ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese su correo';
-                  }
-                  if (!value.contains('@')) {
-                    return 'Por favor ingrese un correo válido';
-                  }
-                  return null;
-                },
+                readOnly: true, // No editable
               ),
               const SizedBox(height: 16),
+
+              // 🔹 Campo celular (ya lleno)
               TextFormField(
                 controller: controller.celularController,
                 decoration: const InputDecoration(
                   labelText: "Número de celular",
                   border: OutlineInputBorder(),
                 ),
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese su número de celular';
-                  }
-                  return null;
-                },
+                readOnly: true, // No editable
               ),
               const SizedBox(height: 16),
+
+              // 🔹 Fecha de reserva
               ListTile(
                 title: Text(
                   controller.fechaReserva == null
@@ -93,6 +93,8 @@ class ReservaView extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 16),
+
+              // 🔹 Selección de hora
               DropdownButtonFormField<String>(
                 value: controller.horaSeleccionada,
                 decoration: const InputDecoration(
@@ -112,6 +114,7 @@ class ReservaView extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 20),
+
               const Text(
                 "Política: Si desea cambiar la fecha, debe hacerlo con al menos 1 hora de anticipación para conservar el abono.",
                 style: TextStyle(
@@ -120,10 +123,11 @@ class ReservaView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
+
+              // 🔹 Botón de confirmar
               ElevatedButton(
                 onPressed: () async {
                   if (controller.formKey.currentState!.validate()) {
-                    // Confirmamos la reserva
                     final confirmado = await controller.confirmarReserva();
                     if (confirmado && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -134,7 +138,7 @@ class ReservaView extends StatelessWidget {
                       );
                       controller.limpiarFormulario();
 
-                      // Navegamos a PagosView
+                      // Ir a vista de pagos
                       Navigator.pushNamed(context, AppRoutes.pagos);
                     }
                   }
