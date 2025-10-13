@@ -10,6 +10,7 @@ class CanchasBiblosController extends ChangeNotifier {
       price: "\$80.000 COP",
       horario: "7:00 AM - 10:00 PM",
       tipo: TipoCancha.cerrada,
+      jugadores: "6 vs 6",
     ),
     CanchaModel(
       image: "lib/images/3.jpg",
@@ -17,6 +18,7 @@ class CanchasBiblosController extends ChangeNotifier {
       price: "\$80.000 COP",
       horario: "7:00 AM - 10:00 PM",
       tipo: TipoCancha.cerrada,
+      jugadores: "6 vs 6",
     ),
     CanchaModel(
       image: "lib/images/6.jpg",
@@ -24,6 +26,7 @@ class CanchasBiblosController extends ChangeNotifier {
       price: "\$50.000 COP",
       horario: "7:00 AM - 10:00 PM",
       tipo: TipoCancha.abierta,
+      jugadores: "5 vs 5",
     ),
     CanchaModel(
       image: "lib/images/7.jpg",
@@ -31,6 +34,7 @@ class CanchasBiblosController extends ChangeNotifier {
       price: "\$50.000 COP",
       horario: "7:00 AM - 10:00 PM",
       tipo: TipoCancha.abierta,
+      jugadores: "5 vs 5",
     ),
   ];
 

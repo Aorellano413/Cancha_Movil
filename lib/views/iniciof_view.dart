@@ -32,8 +32,11 @@ class InicioFView extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 ...canchasController.canchas.map((cancha) {
-                  return _buildCard(context,
-                      cancha: cancha, reservaController: reservaController);
+                  return _buildCard(
+                    context,
+                    cancha: cancha,
+                    reservaController: reservaController,
+                  );
                 }),
               ],
             );
@@ -72,17 +75,32 @@ class InicioFView extends StatelessWidget {
                 Text(cancha.title,
                     style: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 5),
+                const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.access_time,
-                            size: 18, color: Colors.grey),
-                        const SizedBox(width: 5),
-                        Text(cancha.horario,
-                            style: const TextStyle(color: Colors.grey)),
+                        Row(
+                          children: [
+                            const Icon(Icons.access_time,
+                                size: 18, color: Colors.grey),
+                            const SizedBox(width: 5),
+                            Text(cancha.horario,
+                                style: const TextStyle(color: Colors.grey)),
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        Row(
+                          children: [
+                            const Icon(Icons.sports_soccer,
+                                size: 18, color: Colors.grey),
+                            const SizedBox(width: 5),
+                            Text("Jugadores: ${cancha.jugadores}",
+                                style: const TextStyle(color: Colors.grey)),
+                          ],
+                        ),
                       ],
                     ),
                     Container(
@@ -101,8 +119,8 @@ class InicioFView extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green),
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
                     onPressed: () {
                       reservaController.setTipoCancha(cancha.tipo);
                       Navigator.pushNamed(context, AppRoutes.reserva);

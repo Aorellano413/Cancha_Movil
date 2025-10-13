@@ -8,6 +8,7 @@ class CanchasJugada2Controller extends ChangeNotifier {
       title: "Cancha Abirta #1",
       horario: "7:00 AM - 10:00 PM",
       price: "\$70.000 / hora",
+      jugadores: "5 vs 5",
       tipo:TipoCancha.cerrada,
     ),
     CanchaModel(
@@ -15,6 +16,7 @@ class CanchasJugada2Controller extends ChangeNotifier {
       title: "Cancha  Abierta #2",
       horario: "7:00 AM - 10:00 PM",
       price: "\$70.000 / hora",
+      jugadores: "5 vs 5",
       tipo: TipoCancha.cerrada,
     ),
     CanchaModel(
@@ -22,6 +24,7 @@ class CanchasJugada2Controller extends ChangeNotifier {
       title: "Cancha  Abierta #3",
       horario: "7:00 AM - 10:00 PM",
       price: "\$70.000 / hora",
+      jugadores: "5 vs 5",
       tipo: TipoCancha.cerrada,
     ),
   ];

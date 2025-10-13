@@ -8,6 +8,7 @@ class CanchasController extends ChangeNotifier {
       title: "Cancha Techada",
       price: "\$80.000 COP",
       horario: "6:00 AM - 11:00 PM",
+      jugadores: "5 vs 5",
       tipo: TipoCancha.cerrada,
     ),
 
@@ -16,6 +17,7 @@ class CanchasController extends ChangeNotifier {
       title: "Cancha abierta",
       price: "\$60.000 COP",
       horario: "6:00 AM - 11:00 PM",
+      jugadores: "5 vs 5",
       tipo: TipoCancha.cerrada,
     ),
   ];

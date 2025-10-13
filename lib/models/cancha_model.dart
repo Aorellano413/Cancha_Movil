@@ -2,7 +2,10 @@
 
 enum TipoCancha {
   abierta,
-  cerrada, natural, techada, sintetica,
+  cerrada,
+  natural,
+  techada,
+  sintetica,
 }
 
 class CanchaModel {
@@ -11,6 +14,7 @@ class CanchaModel {
   final String price;
   final String horario;
   final TipoCancha tipo;
+  final String jugadores; 
 
   CanchaModel({
     required this.image,
@@ -18,6 +22,7 @@ class CanchaModel {
     required this.price,
     required this.horario,
     required this.tipo,
+    required this.jugadores, 
   });
 
   factory CanchaModel.fromJson(Map<String, dynamic> json) {
@@ -26,7 +31,8 @@ class CanchaModel {
       title: json['title'] ?? '',
       price: json['price'] ?? '',
       horario: json['horario'] ?? '',
-      tipo: json['tipo'] == 'cerrada' ? TipoCancha.cerrada : TipoCancha.abierta,
+      tipo: _parseTipoCancha(json['tipo']),
+      jugadores: json['jugadores'] ?? '5 vs 5', 
     );
   }
 
@@ -36,7 +42,23 @@ class CanchaModel {
       'title': title,
       'price': price,
       'horario': horario,
-      'tipo': tipo == TipoCancha.cerrada ? 'cerrada' : 'abierta',
+      'tipo': tipo.name,
+      'jugadores': jugadores,
     };
+  }
+
+  static TipoCancha _parseTipoCancha(String? tipoStr) {
+    switch (tipoStr) {
+      case 'cerrada':
+        return TipoCancha.cerrada;
+      case 'natural':
+        return TipoCancha.natural;
+      case 'techada':
+        return TipoCancha.techada;
+      case 'sintetica':
+        return TipoCancha.sintetica;
+      default:
+        return TipoCancha.abierta;
+    }
   }
 }
