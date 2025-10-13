@@ -11,12 +11,11 @@ class ReservaView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Provider.of<ReservaController>(context);
 
-    // ✅ Datos estáticos del usuario
     const String nombreFijo = "Andres Orellano";
     const String correoFijo = "andresorellano591@gmail.com";
     const String celularFijo = "3003525431";
 
-    // ✅ Precargamos los datos en los controladores (solo una vez)
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (controller.nombreController.text.isEmpty) {
         controller.nombreController.text = nombreFijo;
@@ -138,7 +137,7 @@ class ReservaView extends StatelessWidget {
                       );
                       controller.limpiarFormulario();
 
-                      // Ir a vista de pagos
+                     
                       Navigator.pushNamed(context, AppRoutes.pagos);
                     }
                   }

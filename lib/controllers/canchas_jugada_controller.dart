@@ -10,12 +10,13 @@ class CanchasController extends ChangeNotifier {
       horario: "6:00 AM - 11:00 PM",
       tipo: TipoCancha.cerrada,
     ),
+
     CanchaModel(
-      image: "lib/images/sintecho.jpg",
-      title: "Cancha Abierta",
-      price: "\$70.000 COP",
+      image: "lib/images/jsintecho.jpg",
+      title: "Cancha abierta",
+      price: "\$60.000 COP",
       horario: "6:00 AM - 11:00 PM",
-      tipo: TipoCancha.abierta,
+      tipo: TipoCancha.cerrada,
     ),
   ];
 

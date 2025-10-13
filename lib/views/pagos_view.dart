@@ -10,16 +10,16 @@ class PagosView extends StatelessWidget {
     // 🧍 Datos del cliente
     const String nombre = "Adel Andres Orellano Villegas";
     const String correo = "andresorellano591@gmail.com";
-    const String numero = "3003525431"; // Tu número personal (cliente)
-    const String hora = "15:00 - 16:00";
-    const String sede = "La Jugada";
-    const String cancha = "Cancha abierta";
-    const String monto = "70.000";
+    const String numero = "3003525431"; 
+    const String hora = "17:00 - 18:00";
+    const String sede = "La Jugada Principal";
+    const String cancha = "Cancha techada";
+    const String monto = "80.000";
 
-    // 📞 Número de la empresa (destino del mensaje)
+  
     const String whatsAppEmpresa = "3007437404";
 
-    // ✅ Mensaje mejorado de WhatsApp
+
     Future<void> _enviarWhatsApp() async {
       final String mensaje = """
 🏆 *ReservaSport*

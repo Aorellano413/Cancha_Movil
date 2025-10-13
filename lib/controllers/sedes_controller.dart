@@ -3,18 +3,32 @@ import '../models/sede_model.dart';
 
 class SedesController extends ChangeNotifier {
   final List<SedeModel> _todasLasSedes = [
+     SedeModel(
+      imagePath: "lib/images/jugada.jpg", 
+      title: "Sede - La Jugada Principal",
+      subtitle: "Mayales, Valledupar",
+      price: "\$80.000",
+      tag: "Día - Noche",
+    ),
     SedeModel(
-      imagePath: "lib/images/5.jpg", 
-      title: "Sede - La Jugada",
+      imagePath: "lib/images/sede2.jpg", 
+      title: "Sede - La Jugada Secundaria",
       subtitle: "Mayales, Valledupar",
       price: "\$70.000",
       tag: "Día - Noche",
     ),
     SedeModel(
-      imagePath: "lib/images/4.jpg",
+      imagePath: "lib/images/biblos.jpg",
       title: "Sede - Biblos",
       subtitle: "Sabanas, Valledupar",
       price: "\$70.000",
+      tag: "Día - Noche",
+    ),
+    SedeModel(
+      imagePath: "lib/images/fortin.jpg", 
+      title: "Sede - El Fortín",
+      subtitle: "Cra 9 #14A-22, Valledupar",
+      price: "\$80.000",
       tag: "Día - Noche",
     ),
   ];

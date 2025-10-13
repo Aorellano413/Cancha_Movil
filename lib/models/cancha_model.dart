@@ -2,7 +2,7 @@
 
 enum TipoCancha {
   abierta,
-  cerrada,
+  cerrada, natural, techada, sintetica,
 }
 
 class CanchaModel {
