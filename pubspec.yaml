@@ -15,7 +15,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   get: ^4.7.2
   url_launcher: ^6.1.10
-  carousel_slider: ^5.0.0 
+  carousel_slider: ^5.0.0
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
@@ -24,6 +25,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
   assets:
-    - lib/images/   
+    - lib/images/

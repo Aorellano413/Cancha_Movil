@@ -18,7 +18,6 @@ class LoginView extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          
           Expanded(
             flex: 2,
             child: Stack(
@@ -40,9 +39,8 @@ class LoginView extends StatelessWidget {
                           children: [
                             Image.asset(
                               imagen,
-                              fit: BoxFit.cover, 
+                              fit: BoxFit.cover,
                             ),
-                            
                             Container(
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
@@ -78,7 +76,7 @@ class LoginView extends StatelessWidget {
             ),
           ),
 
-          // 👋 Sección inferior de bienvenida
+          
           Expanded(
             flex: 1,
             child: Container(
@@ -127,7 +125,6 @@ class LoginView extends StatelessWidget {
                   ),
                   const SizedBox(height: 25),
 
-                  // 🔘 Botón de Usuario
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
@@ -142,7 +139,7 @@ class LoginView extends StatelessWidget {
                       Navigator.pushNamed(context, AppRoutes.sedes);
                     },
                     child: Text(
-                      "Usuario",
+                      "Reservar Cancha",
                       style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -152,13 +149,12 @@ class LoginView extends StatelessWidget {
 
                   const SizedBox(height: 15),
 
-                  // 🔐 Texto para admin
                   TextButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, AppRoutes.sedes);
+                      Navigator.pushNamed(context, AppRoutes.loginAdmin); 
                     },
                     child: Text(
-                      " Administrador",
+                      "Administrador",
                       style: GoogleFonts.poppins(
                         color: Colors.black54,
                         fontWeight: FontWeight.w500,

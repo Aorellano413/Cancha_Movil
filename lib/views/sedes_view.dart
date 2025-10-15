@@ -1,3 +1,4 @@
+import 'dart:io' show File; // OK en móvil/desktop; en web se ignora
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/sedes_controller.dart';
@@ -12,7 +13,35 @@ class SedesView extends StatefulWidget {
 }
 
 class _SedesViewState extends State<SedesView> {
-  String _query = ''; 
+  String _query = '';
+
+  Widget _imageFor(String path) {
+    // 1) blob:/http/https (web o urls) -> network
+    if (path.startsWith('blob:') || path.startsWith('http')) {
+      return Image.network(
+        path,
+        height: 180,
+        width: double.infinity,
+        fit: BoxFit.cover,
+      );
+    }
+    // 2) rutas locales (Android/iOS/desktop) -> file
+    if (path.startsWith('/') || path.contains(':\\')) {
+      return Image.file(
+        File(path),
+        height: 180,
+        width: double.infinity,
+        fit: BoxFit.cover,
+      );
+    }
+    // 3) por defecto tratamos como asset
+    return Image.asset(
+      path,
+      height: 180,
+      width: double.infinity,
+      fit: BoxFit.cover,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +61,6 @@ class _SedesViewState extends State<SedesView> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-    
           TextField(
             decoration: InputDecoration(
               hintText: 'Buscar sede...',
@@ -41,14 +69,9 @@ class _SedesViewState extends State<SedesView> {
                 borderRadius: BorderRadius.circular(15),
               ),
             ),
-            onChanged: (value) {
-              setState(() {
-                _query = value;
-              });
-            },
+            onChanged: (value) => setState(() => _query = value),
           ),
           const SizedBox(height: 20),
-
           if (sedesFiltradas.isEmpty)
             const Center(
               child: Padding(
@@ -88,14 +111,8 @@ class _SedesViewState extends State<SedesView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
-              child: Image.asset(
-                sede.imagePath,
-                height: 180,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              child: _imageFor(sede.imagePath),
             ),
             Padding(
               padding: const EdgeInsets.all(12),
@@ -104,23 +121,20 @@ class _SedesViewState extends State<SedesView> {
                 children: [
                   Text(
                     sede.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 5),
                   Text(
                     sede.subtitle,
                     style: const TextStyle(color: Colors.grey),
                   ),
+                  // (Descripción removida como pediste)
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
                           color: Colors.black,
                           borderRadius: BorderRadius.circular(12),
