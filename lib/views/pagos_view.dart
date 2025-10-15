@@ -1,4 +1,3 @@
-// views/pagos_view.dart
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -16,9 +15,7 @@ class PagosView extends StatelessWidget {
     const String cancha = "Cancha techada";
     const String monto = "80.000";
 
-  
     const String whatsAppEmpresa = "3007437404";
-
 
     Future<void> _enviarWhatsApp() async {
       final String mensaje = """
@@ -43,19 +40,21 @@ class PagosView extends StatelessWidget {
 
       await launchUrl(uriWhatsapp, mode: LaunchMode.externalApplication);
     }
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDarkMode ? Colors.white : Colors.black;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F6F6),
+      backgroundColor: Theme.of(context).colorScheme.background, 
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
-        title: const Text(
+        title: Text(
           "Opciones de Pago",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -67,11 +66,11 @@ class PagosView extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.15),
+                    color: Theme.of(context).shadowColor.withOpacity(0.15),
                     spreadRadius: 2,
                     blurRadius: 10,
                     offset: const Offset(0, 3),
@@ -81,30 +80,30 @@ class PagosView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     "Detalles de la Reserva",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
                   ),
                   const SizedBox(height: 10),
-                  _dato("👤 Nombre", nombre),
-                  _dato("✉️ Correo", correo),
-                  _dato("📞 Teléfono", numero),
+                  _dato("👤 Nombre", nombre, textColor),
+                  _dato("✉️ Correo", correo, textColor),
+                  _dato("📞 Teléfono", numero, textColor),
                   const Divider(height: 30, thickness: 0.8),
-                  _dato("🕒 Hora", hora),
-                  _dato("📍 Sede", sede),
-                  _dato("⚽ Cancha", cancha),
+                  _dato("🕒 Hora", hora, textColor),
+                  _dato("📍 Sede", sede, textColor),
+                  _dato("⚽ Cancha", cancha, textColor),
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         "💰 Monto Total:",
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16),
+                            fontWeight: FontWeight.bold, fontSize: 16, color: textColor),
                       ),
                       Text(
                         "\$$monto",
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.green,
@@ -168,21 +167,19 @@ class PagosView extends StatelessWidget {
     );
   }
 
-  Widget _dato(String titulo, String valor) {
+  Widget _dato(String titulo, String valor, Color textColor) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           Expanded(
             flex: 3,
-            child:
-                Text(titulo, style: const TextStyle(fontWeight: FontWeight.w600)),
+            child: Text(titulo, style: TextStyle(fontWeight: FontWeight.w600, color: textColor)),
           ),
           Expanded(
             flex: 5,
             child: Text(valor,
-                style:
-                    const TextStyle(fontSize: 16, color: Colors.black87)),
+                style: TextStyle(fontSize: 16, color: textColor)),
           ),
         ],
       ),

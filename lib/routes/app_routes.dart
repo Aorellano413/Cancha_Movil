@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../views/login_view.dart';
 import '../views/sedes_view.dart';
 import '../views/inicioj_view.dart';
-import '../views/inicioj2_view.dart'; 
+import '../views/inicioj2_view.dart';
 import '../views/iniciob_view.dart';
 import '../views/iniciof_view.dart';
 import '../views/reserva_view.dart';
@@ -11,20 +11,17 @@ import '../views/login_admin_view.dart';
 import '../views/admin_dashboard_view.dart';
 
 class AppRoutes {
-
   static const String login = '/login';
   static const String sedes = '/sedes';
   static const String inicioJugada = '/inicioj';
-  static const String inicioJugada2 = '/inicioj2'; 
+  static const String inicioJugada2 = '/inicioj2';
   static const String inicioBiblos = '/iniciob';
   static const String inicioFortin = '/iniciof';
   static const String reserva = '/reserva';
   static const String pagos = '/pagos';
   static const String loginAdmin = '/loginAdmin';
   static const String adminDashboard = '/adminDashboard';
-
   static Map<String, WidgetBuilder> routes = {
-
     login: (context) => const LoginView(),
     sedes: (context) => const SedesView(),
     inicioJugada: (context) => const InicioJView(),
@@ -36,7 +33,7 @@ class AppRoutes {
     loginAdmin: (context) => const LoginAdminView(),
     adminDashboard: (context) => const AdminDashboardView(),
   };
-
+  
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case login:
@@ -59,7 +56,6 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const LoginAdminView());
       case adminDashboard:
         return MaterialPageRoute(builder: (_) => const AdminDashboardView());
-
       default:
         return null;
     }
