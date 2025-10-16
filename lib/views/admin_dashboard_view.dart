@@ -17,6 +17,57 @@ class AdminDashboardView extends StatefulWidget {
   State<AdminDashboardView> createState() => _AdminDashboardViewState();
 }
 
+enum ReservaEstado { pendiente, pagado, cancelado }
+
+extension ReservaEstadoX on ReservaEstado {
+  String get label {
+    switch (this) {
+      case ReservaEstado.pendiente:
+        return 'Pendiente';
+      case ReservaEstado.pagado:
+        return 'Pagado';
+      case ReservaEstado.cancelado:
+        return 'Cancelado';
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case ReservaEstado.pendiente:
+        return const Color(0xFFFFA000); 
+      case ReservaEstado.pagado:
+        return const Color(0xFF2E7D32); 
+      case ReservaEstado.cancelado:
+        return const Color(0xFFC62828); 
+    }
+  }
+}
+
+class Reserva {
+  final String nombre;
+  final String sede;
+  final String inicio;
+  final String fin;
+  final String correo;
+  final String telefono;
+  final String cancha; 
+  final String monto;  
+  ReservaEstado estado;
+
+  Reserva({
+    required this.nombre,
+    required this.sede,
+    required this.inicio,
+    required this.fin,
+    required this.correo,
+    required this.telefono,
+    required this.cancha,
+    required this.monto,
+    this.estado = ReservaEstado.pendiente,
+  });
+}
+/* ============================================================= */
+
 class _AdminDashboardViewState extends State<AdminDashboardView> {
   final Stopwatch _stopwatch = Stopwatch();
   late Timer _timer;
@@ -26,19 +77,99 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
   final _direccionCtrl = TextEditingController();
   final _precioCtrl = TextEditingController();
   String _pickedPath = '';
-  int? _editingCustomIndex; 
-
+  int? _editingCustomIndex;
 
   final List<Map<String, dynamic>> sedesDemo = [
-    {'nombre': 'La Jugada Principal', 'color': const Color(0xFF0083B0), 'reservas': 5, 'image': 'lib/images/jugada.jpg'},
-    {'nombre': 'La Jugada Secundaria', 'color': const Color(0xFF00B4DB), 'reservas': 3, 'image': 'lib/images/sede2.jpg'},
-    {'nombre': 'Biblos', 'color': const Color(0xFF2E8B57), 'reservas': 4, 'image': 'lib/images/biblos.jpg'},
-    {'nombre': 'El Fortín', 'color': const Color(0xFFE07B39), 'reservas': 2, 'image': 'lib/images/fortin.jpg'},
+    {
+      'nombre': 'La Jugada Principal',
+      'color': const Color(0xFF0083B0),
+      'reservas': 1,
+      'image': 'lib/images/jugada.jpg'
+    },
+    {
+      'nombre': 'La Jugada Secundaria',
+      'color': const Color(0xFF00B4DB),
+      'reservas': 1,
+      'image': 'lib/images/sede2.jpg'
+    },
+    {
+      'nombre': 'Biblos',
+      'color': const Color(0xFF2E8B57),
+      'reservas': 2,
+      'image': 'lib/images/biblos.jpg'
+    },
+    {
+      'nombre': 'El Fortín',
+      'color': const Color(0xFFE07B39),
+      'reservas': 1,
+      'image': 'lib/images/fortin.jpg'
+    },
   ];
+
+  late List<Reserva> reservasRecientes;
 
   @override
   void initState() {
     super.initState();
+
+    reservasRecientes = [
+      Reserva(
+        nombre: 'Adel Andrés Orellano',
+        sede: 'La Jugada Principal',
+        inicio: '17:00',
+        fin: '18:00',
+        correo: 'andresorellano591@gmail.com',
+        telefono: '3003525431',
+        cancha: 'Cancha techada',
+        monto: '\$80000',
+        estado: ReservaEstado.pendiente,
+      ),
+      Reserva(
+        nombre: 'Carlos Ruiz',
+        sede: 'Biblos',
+        inicio: '14:00',
+        fin: '15:00',
+        correo: 'carlos.ruiz@mail.com',
+        telefono: '3002223344',
+        cancha: 'Cancha descubierta',
+        monto: '\$60000',
+        estado: ReservaEstado.pendiente,
+      ),
+      Reserva(
+        nombre: 'Sofía Ramírez',
+        sede: 'El Fortín',
+        inicio: '18:00',
+        fin: '19:00',
+        correo: 'sofia.ramirez@mail.com',
+        telefono: '3003334455',
+        cancha: 'Cancha techada',
+        monto: '\$80000',
+        estado: ReservaEstado.pendiente,
+      ),
+      Reserva(
+        nombre: 'Luis Fernández',
+        sede: 'La Jugada Secundaria',
+        inicio: '10:00',
+        fin: '11:00',
+        correo: 'luis.fernandez@mail.com',
+        telefono: '3004445566',
+        cancha: 'Cancha 7',
+        monto: '\$50000',
+        estado: ReservaEstado.pendiente,
+      ),
+      Reserva(
+        nombre: 'Marta Silva',
+        sede: 'Biblos',
+        inicio: '12:00',
+        fin: '13:00',
+        correo: 'marta.silva@mail.com',
+        telefono: '3005556677',
+        cancha: 'Cancha 5',
+        monto: '\$50000',
+        estado: ReservaEstado.pendiente,
+      ),
+    ];
+
     _stopwatch.start();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       final d = _stopwatch.elapsed;
@@ -58,7 +189,6 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
     super.dispose();
   }
 
- 
   void _logout() {
     Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
   }
@@ -97,8 +227,12 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
     if (x != null) setState(() => _pickedPath = x.path);
   }
 
-  
+  // ====== UI: Tarjeta de sede demo ======
   Widget _demoCard(Map<String, dynamic> s) {
+    final reservas = (s['reservas'] is int)
+        ? (s['reservas'] as int)
+        : (s['reservas'] is List ? (s['reservas'] as List).length : 0);
+
     return Container(
       width: 240,
       decoration: BoxDecoration(
@@ -122,14 +256,21 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                 children: [
                   Row(
                     children: [
-                      Expanded(child: Text(s['nombre'], maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700))),
+                      Expanded(
+                        child: Text(
+                          s['nombre'],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
+                        ),
+                      ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(color: Colors.white.withOpacity(0.18), borderRadius: BorderRadius.circular(12)),
-                        child: Row(children: const [
-                          Icon(Icons.event_available, size: 16, color: Colors.white),
-                          SizedBox(width: 6),
-                          Text("4+", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        child: Row(children: [
+                          const Icon(Icons.event_available, size: 16, color: Colors.white),
+                          const SizedBox(width: 6),
+                          Text("$reservas", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ]),
                       ),
                     ],
@@ -162,7 +303,6 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
         child: Stack(
           children: [
             Positioned.fill(child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0), child: const SizedBox.shrink())),
-            
             Positioned(
               top: 12,
               left: 12,
@@ -172,7 +312,6 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                 child: const Text('Día - Noche', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
               ),
             ),
-           
             Positioned(
               top: 8,
               right: 8,
@@ -192,7 +331,6 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                 ],
               ),
             ),
-            // título
             Positioned(
               left: 16,
               right: 16,
@@ -205,7 +343,174 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
     );
   }
 
- 
+  Widget _reservaItem(Reserva r, int index) {
+    final inicial = (r.nombre.isNotEmpty ? r.nombre.trim()[0] : '?').toUpperCase();
+
+    return InkWell(
+      onTap: () => _showReservaDetalle(r, index),
+      borderRadius: BorderRadius.circular(12),
+      child: Card(
+        elevation: 0.8,
+        color: const Color(0xFFF0F3F7),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: const Color(0xFF0083B0),
+                child: Text(inicial, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: Text(r.nombre, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: r.estado.color.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: r.estado.color.withOpacity(0.5)),
+                          ),
+                          child: Text(
+                            r.estado.label,
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: r.estado.color),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text('${r.sede} • ${r.inicio} – ${r.fin}', style: const TextStyle(color: Colors.black54)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showReservaDetalle(Reserva r, int index) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: const Color(0xFFEAEFF3), // gris claro similar al ejemplo
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(18))),
+      builder: (ctx) {
+        Widget rowIconText(IconData icon, String text) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                Icon(icon, size: 20, color: const Color(0xFF0083B0)),
+                const SizedBox(width: 8),
+                Expanded(child: Text(text, style: const TextStyle(fontSize: 15))),
+              ],
+            ),
+          );
+        }
+
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16, right: 16, top: 16,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(child: Container(width: 38, height: 5, decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(8)))),
+              const SizedBox(height: 12),
+
+              const Text(
+                'Detalles de la Reserva',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 12),
+
+              rowIconText(Icons.person_pin_circle_outlined, 'Nombre: ${r.nombre}'),
+              rowIconText(Icons.alternate_email, 'Correo: ${r.correo}'),
+              rowIconText(Icons.phone_android, 'Teléfono: ${r.telefono}'),
+              rowIconText(Icons.place_outlined, 'Sede: ${r.sede}'),
+              rowIconText(Icons.access_time_filled_outlined, 'Hora: ${r.inicio} – ${r.fin}'),
+              rowIconText(Icons.sports_soccer_outlined, 'Cancha: ${r.cancha}'),
+              rowIconText(Icons.attach_money, 'Monto: ${r.monto}'),
+
+              const SizedBox(height: 8),
+              RichText(
+                text: TextSpan(
+                  style: const TextStyle(color: Colors.black87, fontSize: 16),
+                  children: [
+                    const TextSpan(text: 'Estado actual: ', style: TextStyle(fontWeight: FontWeight.w600)),
+                    TextSpan(text: r.estado.label, style: TextStyle(fontWeight: FontWeight.w700, color: r.estado.color)),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.check_circle_outline),
+                      label: const Text('Marcar como Pagado'),
+                      onPressed: () {
+                        setState(() => reservasRecientes[index].estado = ReservaEstado.pagado);
+                        Navigator.pop(ctx);
+                        _snack('Reserva marcada como PAGADO');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2E7D32),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.cancel_outlined),
+                      label: const Text('Marcar como Cancelado'),
+                      onPressed: () {
+                        setState(() => reservasRecientes[index].estado = ReservaEstado.cancelado);
+                        Navigator.pop(ctx);
+                        _snack('Reserva CANCELADA');
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFC62828),
+                        side: const BorderSide(color: Color(0xFFC62828)),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 6),
+              Align(
+                alignment: Alignment.center,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cerrar'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _openSheet({int? editCustomIndex, SedeModel? seed}) {
     final isEdit = editCustomIndex != null && seed != null;
 
@@ -301,7 +606,6 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                 ),
                 const SizedBox(height: 16),
 
-                // Tag fijo
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Chip(label: Text('Día - Noche')),
@@ -324,8 +628,8 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                         imagePath: _pickedPath,
                         title: "Sede - ${_nombreCtrl.text.trim()}",
                         subtitle: _direccionCtrl.text.trim(),
-                        price: formatted,             
-                        tag: 'Día - Noche',           
+                        price: formatted,
+                        tag: 'Día - Noche',
                         isCustom: true,
                       );
 
@@ -368,12 +672,10 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
     }
   }
 
-  
   @override
   Widget build(BuildContext context) {
-    final custom = context.watch<SedesController>().customSedes; // tiempo real
+    final custom = context.watch<SedesController>().customSedes;
 
-    
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
@@ -387,13 +689,13 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
           const SizedBox(width: 8),
         ],
       ),
-
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           const Text("Canchas y reservas", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87)),
           const SizedBox(height: 16),
 
+          // Carrusel de sedes
           SizedBox(
             height: 210,
             child: ListView.separated(
@@ -402,7 +704,6 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
               itemCount: sedesDemo.length + custom.length + 1,
               separatorBuilder: (_, __) => const SizedBox(width: 12),
               itemBuilder: (_, i) {
-                
                 if (i == 0) {
                   return SizedBox(
                     width: 240,
@@ -429,6 +730,15 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
           ),
 
           const SizedBox(height: 20),
+          const Text("Reservas recientes", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.black87)),
+          const SizedBox(height: 10),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: reservasRecientes.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 6),
+            itemBuilder: (_, i) => _reservaItem(reservasRecientes[i], i),
+          ),
         ],
       ),
 

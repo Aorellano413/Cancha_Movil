@@ -9,7 +9,7 @@ class SedesController extends ChangeNotifier {
       title: "Sede - La Jugada Principal",
       subtitle: "Mayales, Valledupar",
       price: "\$80.000",
-      tag: "Día - Noche",
+      tag: "Día - Noche", 
       isCustom: false,
     ),
     SedeModel(
@@ -17,7 +17,7 @@ class SedesController extends ChangeNotifier {
       title: "Sede - La Jugada Secundaria",
       subtitle: "Mayales, Valledupar",
       price: "\$70.000",
-      tag: "Día - Noche",
+      tag: "Día - Noche", 
       isCustom: false,
     ),
     SedeModel(
@@ -33,14 +33,13 @@ class SedesController extends ChangeNotifier {
       title: "Sede - El Fortín",
       subtitle: "Cra 9 #14A-22, Valledupar",
       price: "\$80.000",
-      tag: "Día - Noche",
+      tag: "Día - Noche",  
       isCustom: false,
     ),
   ];
 
   String _searchText = "";
 
-  
   List<SedeModel> get sedes {
     if (_searchText.isEmpty) return List.unmodifiable(_todasLasSedes);
     return _todasLasSedes.where((s) {
@@ -49,7 +48,6 @@ class SedesController extends ChangeNotifier {
       return title.contains(_searchText) || subtitle.contains(_searchText);
     }).toList();
   }
-
 
   List<SedeModel> get customSedes =>
       _todasLasSedes.where((s) => s.isCustom).toList(growable: false);
@@ -60,19 +58,17 @@ class SedesController extends ChangeNotifier {
   }
 
   void agregarSede(SedeModel sede) {
-    _todasLasSedes.add(sede.copyWith(isCustom: true));
+    _todasLasSedes.add(sede.copyWith(isCustom: true, tag: "Día - Noche")); 
     notifyListeners();
   }
 
-  
   void actualizarSedeCustom(int customIndex, SedeModel updated) {
- 
     int count = -1;
     for (int i = 0; i < _todasLasSedes.length; i++) {
       if (_todasLasSedes[i].isCustom) {
         count++;
         if (count == customIndex) {
-          _todasLasSedes[i] = updated.copyWith(isCustom: true);
+          _todasLasSedes[i] = updated.copyWith(isCustom: true, tag: "Día - Noche");
           notifyListeners();
           return;
         }
