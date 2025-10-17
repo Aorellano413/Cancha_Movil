@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:cancha_movil/controllers/theme_controller.dart';
-import 'package:cancha_movil/main.dart';
+import 'package:ReservaSports/controllers/theme_controller.dart';
+import 'package:ReservaSports/main.dart';
 
 void main() {
   testWidgets('Carga LoginView y muestra botones clave', (WidgetTester tester) async {
