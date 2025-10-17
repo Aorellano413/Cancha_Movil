@@ -1,44 +1,15 @@
 // lib/controllers/sedes_controller.dart
 import 'package:flutter/material.dart';
 import '../models/sede_model.dart';
+import '../services/firestore_service.dart';
 
 class SedesController extends ChangeNotifier {
-  final List<SedeModel> _todasLasSedes = [
-    SedeModel(
-      imagePath: "lib/images/jugada.jpg",
-      title: "Sede - La Jugada Principal",
-      subtitle: "Mayales, Valledupar",
-      price: "\$80.000",
-      tag: "Día - Noche", 
-      isCustom: false,
-    ),
-    SedeModel(
-      imagePath: "lib/images/sede2.jpg",
-      title: "Sede - La Jugada Secundaria",
-      subtitle: "Mayales, Valledupar",
-      price: "\$70.000",
-      tag: "Día - Noche", 
-      isCustom: false,
-    ),
-    SedeModel(
-      imagePath: "lib/images/biblos.jpg",
-      title: "Sede - Biblos",
-      subtitle: "Sabanas, Valledupar",
-      price: "\$70.000",
-      tag: "Día - Noche",
-      isCustom: false,
-    ),
-    SedeModel(
-      imagePath: "lib/images/fortin.jpg",
-      title: "Sede - El Fortín",
-      subtitle: "Cra 9 #14A-22, Valledupar",
-      price: "\$80.000",
-      tag: "Día - Noche",  
-      isCustom: false,
-    ),
-  ];
-
+  final FirestoreService _firestore = FirestoreService();
+  
+  List<SedeModel> _todasLasSedes = [];
   String _searchText = "";
+  bool _isLoading = false;
+  String? _error;
 
   List<SedeModel> get sedes {
     if (_searchText.isEmpty) return List.unmodifiable(_todasLasSedes);
@@ -52,41 +23,128 @@ class SedesController extends ChangeNotifier {
   List<SedeModel> get customSedes =>
       _todasLasSedes.where((s) => s.isCustom).toList(growable: false);
 
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+
+  SedesController() {
+    cargarSedes();
+  }
+
+  /// Cargar sedes desde Firestore
+  Future<void> cargarSedes() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _todasLasSedes = await _firestore.getSedes();
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = 'Error al cargar sedes: $e';
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Escuchar cambios en tiempo real (opcional)
+  void escucharSedes() {
+    _firestore.getSedesStream().listen(
+      (sedes) {
+        _todasLasSedes = sedes;
+        notifyListeners();
+      },
+      onError: (error) {
+        _error = 'Error al escuchar sedes: $error';
+        notifyListeners();
+      },
+    );
+  }
+
   void buscarSedes(String query) {
     _searchText = query.toLowerCase();
     notifyListeners();
   }
 
-  void agregarSede(SedeModel sede) {
-    _todasLasSedes.add(sede.copyWith(isCustom: true, tag: "Día - Noche")); 
-    notifyListeners();
-  }
-
-  void actualizarSedeCustom(int customIndex, SedeModel updated) {
-    int count = -1;
-    for (int i = 0; i < _todasLasSedes.length; i++) {
-      if (_todasLasSedes[i].isCustom) {
-        count++;
-        if (count == customIndex) {
-          _todasLasSedes[i] = updated.copyWith(isCustom: true, tag: "Día - Noche");
-          notifyListeners();
-          return;
-        }
-      }
+  Future<void> agregarSede(SedeModel sede) async {
+    try {
+      final sedeConTag = sede.copyWith(isCustom: true, tag: "Día - Noche");
+      final id = await _firestore.agregarSede(sedeConTag);
+      
+      // Agregar a la lista local con el ID
+      _todasLasSedes.add(sedeConTag.copyWith(id: id));
+      notifyListeners();
+    } catch (e) {
+      _error = 'Error al agregar sede: $e';
+      notifyListeners();
+      rethrow;
     }
   }
 
-  void eliminarSedeCustom(int customIndex) {
-    int count = -1;
-    for (int i = 0; i < _todasLasSedes.length; i++) {
-      if (_todasLasSedes[i].isCustom) {
-        count++;
-        if (count == customIndex) {
-          _todasLasSedes.removeAt(i);
-          notifyListeners();
-          return;
+  Future<void> actualizarSedeCustom(int customIndex, SedeModel updated) async {
+    try {
+      int count = -1;
+      for (int i = 0; i < _todasLasSedes.length; i++) {
+        if (_todasLasSedes[i].isCustom) {
+          count++;
+          if (count == customIndex) {
+            final sedeId = _todasLasSedes[i].id;
+            if (sedeId == null) {
+              throw Exception('Sede sin ID');
+            }
+            
+            final sedeActualizada = updated.copyWith(
+              id: sedeId,
+              isCustom: true,
+              tag: "Día - Noche",
+            );
+            
+            await _firestore.actualizarSede(sedeId, sedeActualizada);
+            _todasLasSedes[i] = sedeActualizada;
+            notifyListeners();
+            return;
+          }
         }
       }
+    } catch (e) {
+      _error = 'Error al actualizar sede: $e';
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> eliminarSedeCustom(int customIndex) async {
+    try {
+      int count = -1;
+      for (int i = 0; i < _todasLasSedes.length; i++) {
+        if (_todasLasSedes[i].isCustom) {
+          count++;
+          if (count == customIndex) {
+            final sedeId = _todasLasSedes[i].id;
+            if (sedeId == null) {
+              throw Exception('Sede sin ID');
+            }
+            
+            await _firestore.eliminarSede(sedeId);
+            _todasLasSedes.removeAt(i);
+            notifyListeners();
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      _error = 'Error al eliminar sede: $e';
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  /// Obtener sede por ID
+  SedeModel? obtenerSedePorId(String sedeId) {
+    try {
+      return _todasLasSedes.firstWhere((s) => s.id == sedeId);
+    } catch (e) {
+      return null;
     }
   }
 }

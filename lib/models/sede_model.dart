@@ -1,14 +1,16 @@
-// lib/models/sede_model.dart
+// ============= lib/models/sede_model.dart =============
 class SedeModel {
+  final String? id; // ID de Firestore
   final String imagePath;
   final String title;
   final String subtitle;
   final String price;
   final String tag;
   final String? description;
-  final bool isCustom; 
+  final bool isCustom;
 
   SedeModel({
+    this.id,
     required this.imagePath,
     required this.title,
     required this.subtitle,
@@ -20,6 +22,7 @@ class SedeModel {
 
   factory SedeModel.fromJson(Map<String, dynamic> json) {
     return SedeModel(
+      id: json['id'],
       imagePath: (json['image'] ?? json['imagePath'] ?? '') as String,
       title: (json['title'] ?? '') as String,
       subtitle: (json['subtitle'] ?? '') as String,
@@ -31,16 +34,18 @@ class SedeModel {
   }
 
   Map<String, dynamic> toJson() => {
-        'image': imagePath,
+        if (id != null) 'id': id,
+        'imagePath': imagePath,
         'title': title,
         'subtitle': subtitle,
         'price': price,
         'tag': tag,
-        'description': description,
+        if (description != null) 'description': description,
         'isCustom': isCustom,
       };
 
   SedeModel copyWith({
+    String? id,
     String? imagePath,
     String? title,
     String? subtitle,
@@ -50,6 +55,7 @@ class SedeModel {
     bool? isCustom,
   }) {
     return SedeModel(
+      id: id ?? this.id,
       imagePath: imagePath ?? this.imagePath,
       title: title ?? this.title,
       subtitle: subtitle ?? this.subtitle,

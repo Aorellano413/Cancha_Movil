@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "255093586479",
+    "project_id": "reservasports-84819",
+    "storage_bucket": "reservasports-84819.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:255093586479:android:671f269e471676839324da",
+        "android_client_info": {
+          "package_name": "com.example.cancha_movil"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6UiCnxi34tft8-xS8J3E6ViBGZVj1xE4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,9 +1,11 @@
+// lib/views/login_view.dart
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../controllers/theme_controller.dart';
 import '../routes/app_routes.dart';
+import '../utils/populate_firestore.dart'; // Importar el script de población
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -83,7 +85,8 @@ class LoginView extends StatelessWidget {
                       padding: EdgeInsets.fromLTRB(30, 30, 30, 16 + bottomInset),
                       decoration: BoxDecoration(
                         color: Theme.of(context).scaffoldBackgroundColor,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
+                        borderRadius:
+                            const BorderRadius.vertical(top: Radius.circular(40)),
                         boxShadow: [
                           BoxShadow(
                             color: cs.shadow.withOpacity(0.08),
@@ -132,7 +135,7 @@ class LoginView extends StatelessWidget {
                           ),
                           const SizedBox(height: 24),
 
-                          // Botón ancho completo
+                          // Botón principal
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
@@ -140,7 +143,8 @@ class LoginView extends StatelessWidget {
                                 backgroundColor: cs.primary,
                                 foregroundColor: cs.onPrimary,
                                 elevation: 5,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30),
                                 ),
@@ -159,8 +163,8 @@ class LoginView extends StatelessWidget {
                           const SizedBox(height: 12),
 
                           TextButton(
-                            onPressed: () =>
-                                Navigator.pushNamed(context, AppRoutes.loginAdmin),
+                            onPressed: () => Navigator.pushNamed(
+                                context, AppRoutes.loginAdmin),
                             child: Text(
                               "Administrador",
                               style: GoogleFonts.poppins(
@@ -169,6 +173,124 @@ class LoginView extends StatelessWidget {
                               ),
                             ),
                           ),
+
+                          // ====== BOTÓN TEMPORAL PARA POBLAR DATOS ======
+                          // Elimina o comenta esta sección después de poblar los datos
+                          const SizedBox(height: 20),
+                          const Divider(),
+                          const SizedBox(height: 12),
+                          Text(
+                            "Herramientas de desarrollo",
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            alignment: WrapAlignment.center,
+                            children: [
+                              _DevButton(
+                                icon: Icons.cloud_upload,
+                                label: "Poblar DB",
+                                color: Colors.green,
+                                onPressed: () async {
+                                  _showLoadingDialog(context);
+                                  try {
+                                    await PopulateFirestore.poblarDatosIniciales();
+                                    if (context.mounted) {
+                                      Navigator.pop(context); // Cerrar loading
+                                      _showSuccessDialog(context,
+                                          "Datos poblados exitosamente");
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      Navigator.pop(context); // Cerrar loading
+                                      _showErrorDialog(
+                                          context, "Error al poblar datos: $e");
+                                    }
+                                  }
+                                },
+                              ),
+                              _DevButton(
+                                icon: Icons.analytics,
+                                label: "Ver Stats",
+                                color: Colors.blue,
+                                onPressed: () async {
+                                  _showLoadingDialog(context);
+                                  try {
+                                    await PopulateFirestore.mostrarEstadisticas();
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                      _showSuccessDialog(context,
+                                          "Estadísticas mostradas en consola");
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                      _showErrorDialog(context,
+                                          "Error al obtener estadísticas: $e");
+                                    }
+                                  }
+                                },
+                              ),
+                              _DevButton(
+                                icon: Icons.event,
+                                label: "Reservas Demo",
+                                color: Colors.orange,
+                                onPressed: () async {
+                                  _showLoadingDialog(context);
+                                  try {
+                                    await PopulateFirestore.crearReservasEjemplo();
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                      _showSuccessDialog(
+                                          context, "Reservas demo creadas");
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                      _showErrorDialog(context,
+                                          "Error al crear reservas: $e");
+                                    }
+                                  }
+                                },
+                              ),
+                              _DevButton(
+                                icon: Icons.delete_forever,
+                                label: "Limpiar DB",
+                                color: Colors.red,
+                                onPressed: () {
+                                  _showConfirmDialog(
+                                    context,
+                                    title: "⚠️ Advertencia",
+                                    message:
+                                        "¿Estás seguro? Esto eliminará TODOS los datos de la base de datos.",
+                                    onConfirm: () async {
+                                      _showLoadingDialog(context);
+                                      try {
+                                        await PopulateFirestore.limpiarBaseDatos();
+                                        if (context.mounted) {
+                                          Navigator.pop(context);
+                                          _showSuccessDialog(
+                                              context, "Base de datos limpiada");
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          Navigator.pop(context);
+                                          _showErrorDialog(context,
+                                              "Error al limpiar: $e");
+                                        }
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          // ====== FIN BOTONES TEMPORALES ======
                         ],
                       ),
                     ),
@@ -178,6 +300,101 @@ class LoginView extends StatelessWidget {
             );
           },
         ),
+      ),
+    );
+  }
+
+  void _showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text("Procesando..."),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSuccessDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green),
+            SizedBox(width: 8),
+            Text("Éxito"),
+          ],
+        ),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.error, color: Colors.red),
+            SizedBox(width: 8),
+            Text("Error"),
+          ],
+        ),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showConfirmDialog(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required VoidCallback onConfirm,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancelar"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onConfirm();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text("Confirmar"),
+          ),
+        ],
       ),
     );
   }
@@ -215,6 +432,38 @@ class _DarkModeButton extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// Widget auxiliar para los botones de desarrollo
+class _DevButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onPressed;
+
+  const _DevButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 16),
+      label: Text(label, style: const TextStyle(fontSize: 12)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
         ),
       ),
     );

@@ -1,8 +1,11 @@
+// lib/controllers/reserva_controller.dart
 import 'package:flutter/material.dart';
 import '../models/reserva_model.dart';
 import '../models/cancha_model.dart';
+import '../services/firestore_service.dart';
 
 class ReservaController extends ChangeNotifier {
+  final FirestoreService _firestore = FirestoreService();
   final formKey = GlobalKey<FormState>();
   
   final TextEditingController nombreController = TextEditingController();
@@ -12,6 +15,8 @@ class ReservaController extends ChangeNotifier {
   DateTime? _fechaReserva;
   String? _horaSeleccionada;
   TipoCancha? _tipoCanchaSeleccionada;
+  String? _canchaIdSeleccionada;
+  String? _sedeIdSeleccionada;
 
   final List<String> horas = List.generate(
     14,
@@ -25,6 +30,8 @@ class ReservaController extends ChangeNotifier {
   DateTime? get fechaReserva => _fechaReserva;
   String? get horaSeleccionada => _horaSeleccionada;
   TipoCancha? get tipoCanchaSeleccionada => _tipoCanchaSeleccionada;
+  String? get canchaIdSeleccionada => _canchaIdSeleccionada;
+  String? get sedeIdSeleccionada => _sedeIdSeleccionada;
 
   void setFechaReserva(DateTime? fecha) {
     _fechaReserva = fecha;
@@ -41,6 +48,16 @@ class ReservaController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setCanchaId(String? canchaId) {
+    _canchaIdSeleccionada = canchaId;
+    notifyListeners();
+  }
+
+  void setSedeId(String? sedeId) {
+    _sedeIdSeleccionada = sedeId;
+    notifyListeners();
+  }
+
   ReservaModel? crearReserva() {
     if (_tipoCanchaSeleccionada == null) return null;
 
@@ -51,6 +68,8 @@ class ReservaController extends ChangeNotifier {
       fechaReserva: _fechaReserva,
       horaReserva: _horaSeleccionada,
       tipoCancha: _tipoCanchaSeleccionada!,
+      canchaId: _canchaIdSeleccionada,
+      sedeId: _sedeIdSeleccionada,
     );
 
     if (reserva.isValid) {
@@ -59,17 +78,58 @@ class ReservaController extends ChangeNotifier {
     return null;
   }
 
-  Future<bool> confirmarReserva() async {
+  Future<Map<String, dynamic>> confirmarReserva() async {
     final reserva = crearReserva();
-    if (reserva == null) return false;
+    if (reserva == null) {
+      return {
+        'success': false,
+        'message': 'Datos de reserva incompletos',
+      };
+    }
 
-   
-    print('Reserva confirmada: ${reserva.toJson()}');
-    
+    if (_canchaIdSeleccionada == null || _sedeIdSeleccionada == null) {
+      return {
+        'success': false,
+        'message': 'Debe seleccionar una cancha específica',
+      };
+    }
 
-    await Future.delayed(const Duration(seconds: 1));
-    
-    return true;
+    try {
+      // Verificar disponibilidad
+      final disponible = await _firestore.verificarDisponibilidad(
+        canchaId: _canchaIdSeleccionada!,
+        fecha: _fechaReserva!,
+        horaReserva: _horaSeleccionada!,
+      );
+
+      if (!disponible) {
+        return {
+          'success': false,
+          'message': 'Esta cancha ya está reservada para esa fecha y hora',
+        };
+      }
+
+      // Crear reserva
+      final reservaId = await _firestore.crearReserva(
+        reserva,
+        _canchaIdSeleccionada!,
+        _sedeIdSeleccionada!,
+      );
+
+      print('Reserva confirmada con ID: $reservaId');
+
+      return {
+        'success': true,
+        'message': 'Reserva creada exitosamente',
+        'reservaId': reservaId,
+      };
+    } catch (e) {
+      print('Error al confirmar reserva: $e');
+      return {
+        'success': false,
+        'message': 'Error al crear la reserva: $e',
+      };
+    }
   }
 
   void limpiarFormulario() {
@@ -79,6 +139,8 @@ class ReservaController extends ChangeNotifier {
     _fechaReserva = null;
     _horaSeleccionada = null;
     _tipoCanchaSeleccionada = null;
+    _canchaIdSeleccionada = null;
+    _sedeIdSeleccionada = null;
     notifyListeners();
   }
 
