@@ -21,8 +21,8 @@ dependencies:
   firebase_auth: ^4.17.9
   cloud_firestore: ^4.15.9
   intl: ^0.18.1
-  font_awesome_flutter: ^10.4.0 
-
+  font_awesome_flutter: ^10.4.0
+  fl_chart: ^0.69.0   
 
 dev_dependencies:
   flutter_test:
