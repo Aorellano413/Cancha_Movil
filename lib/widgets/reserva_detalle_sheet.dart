@@ -1,5 +1,7 @@
 // lib/widgets/reserva_detalle_sheet.dart
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore_service.dart';
 import '../utils/reserva_estado.dart';
 
@@ -76,6 +78,24 @@ class ReservaDetalleSheet extends StatelessWidget {
         ? reserva['cancha']['price'] ?? '\$0'
         : '\$0';
 
+    // Convertir la fecha a String legible
+    String fechaTexto = 'Sin fecha';
+    final dynamic fechaReservaRaw = reserva['fechaReserva'];
+
+    if (fechaReservaRaw != null) {
+      DateTime fecha;
+      if (fechaReservaRaw is Timestamp) {
+        fecha = fechaReservaRaw.toDate();
+      } else if (fechaReservaRaw is DateTime) {
+        fecha = fechaReservaRaw;
+      } else if (fechaReservaRaw is String) {
+        fecha = DateTime.tryParse(fechaReservaRaw) ?? DateTime.now();
+      } else {
+        fecha = DateTime.now();
+      }
+      fechaTexto = DateFormat('dd/MM/yyyy').format(fecha);
+    }
+
     return Padding(
       padding: EdgeInsets.only(
         left: 16,
@@ -116,6 +136,10 @@ class ReservaDetalleSheet extends StatelessWidget {
             'Teléfono: ${reserva['numeroCelular'] ?? 'Sin teléfono'}',
           ),
           _rowIconText(Icons.place_outlined, 'Sede: $sede'),
+          _rowIconText(
+            Icons.calendar_today_outlined,
+            'Fecha: $fechaTexto',
+          ),
           _rowIconText(
             Icons.access_time_filled_outlined,
             'Hora: ${reserva['horaReserva'] ?? 'Sin hora'}',

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../controllers/theme_controller.dart';
 import '../controllers/sedes_controller.dart';
@@ -145,11 +144,8 @@ class LoginView extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 24),
-<<<<<<< Updated upstream
 
                           // Botón principal
-=======
->>>>>>> Stashed changes
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
@@ -185,7 +181,6 @@ class LoginView extends StatelessWidget {
                               ),
                             ),
                           ),
-<<<<<<< Updated upstream
 
                           // ====== BOTÓN TEMPORAL PARA POBLAR DATOS ======
                           const SizedBox(height: 20),
@@ -303,63 +298,6 @@ class LoginView extends StatelessWidget {
                                         }
                                       }
                                     },
-=======
-                          const SizedBox(height: 25),
-                          Divider(
-                            thickness: 1,
-                            color: Colors.grey.withOpacity(0.3),
-                            indent: 40,
-                            endIndent: 40,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            "Síguenos en nuestras redes",
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color
-                                  ?.withOpacity(0.9),
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _SocialIcon(
-                                icon: FontAwesomeIcons.instagram,
-                                color: Colors.purpleAccent,
-                                onTap: () {
-                                  launchUrl(
-                                    Uri.parse(
-                                        'https://www.instagram.com/reservasports_co/'),
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                },
-                              ),
-                              const SizedBox(width: 20),
-                              _SocialIcon(
-                                icon: FontAwesomeIcons.whatsapp,
-                                color: Colors.green,
-                                onTap: () {
-                                  launchUrl(
-                                    Uri.parse('https://wa.me/573003525431'),
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                },
-                              ),
-                              const SizedBox(width: 20),
-                              _SocialIcon(
-                                icon: FontAwesomeIcons.facebook,
-                                color: Colors.blueAccent,
-                                onTap: () {
-                                  launchUrl(
-                                    Uri.parse(
-                                        'https://www.facebook.com/profile.php?id=61577803655371'),
-                                    mode: LaunchMode.externalApplication,
->>>>>>> Stashed changes
                                   );
                                 },
                               ),
@@ -474,6 +412,7 @@ class LoginView extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _SocialIcon extends StatelessWidget {
   final IconData icon;
   final Color color;
