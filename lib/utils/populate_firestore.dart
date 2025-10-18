@@ -35,6 +35,9 @@ class PopulateFirestore {
 
     print('📍 Creando sedes...');
 
+    // ⚠️ CAMBIO: Ahora todas las sedes tienen isCustom: true
+    // para que aparezcan en el dashboard del admin
+
     // Sede La Jugada Principal
     final jugadaRef = await _db.collection('sedes').add({
       'imagePath': 'lib/images/jugada.jpg',
@@ -42,7 +45,7 @@ class PopulateFirestore {
       'subtitle': 'Mayales, Valledupar',
       'price': '\$80.000',
       'tag': 'Día - Noche',
-      'isCustom': false,
+      'isCustom': true, // ✅ CAMBIADO de false a true
     });
     sedesIds['jugada'] = jugadaRef.id;
     print('  ✓ La Jugada Principal');
@@ -54,7 +57,7 @@ class PopulateFirestore {
       'subtitle': 'Mayales, Valledupar',
       'price': '\$70.000',
       'tag': 'Día - Noche',
-      'isCustom': false,
+      'isCustom': true, // ✅ CAMBIADO de false a true
     });
     sedesIds['jugada2'] = jugada2Ref.id;
     print('  ✓ La Jugada Secundaria');
@@ -66,7 +69,7 @@ class PopulateFirestore {
       'subtitle': 'Sabanas, Valledupar',
       'price': '\$70.000',
       'tag': 'Día - Noche',
-      'isCustom': false,
+      'isCustom': true, // ✅ CAMBIADO de false a true
     });
     sedesIds['biblos'] = biblosRef.id;
     print('  ✓ Biblos');
@@ -78,7 +81,7 @@ class PopulateFirestore {
       'subtitle': 'Cra 9 #14A-22, Valledupar',
       'price': '\$80.000',
       'tag': 'Día - Noche',
-      'isCustom': false,
+      'isCustom': true, // ✅ CAMBIADO de false a true
     });
     sedesIds['fortin'] = fortinRef.id;
     print('  ✓ El Fortín');

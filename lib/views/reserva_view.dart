@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/reserva_controller.dart';
+import '../services/firestore_service.dart';
 import '../routes/app_routes.dart';
 
 class ReservaView extends StatelessWidget {
@@ -11,18 +12,6 @@ class ReservaView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Provider.of<ReservaController>(context);
 
-    const String nombreFijo = "Andres Orellano";
-    const String correoFijo = "andresorellano591@gmail.com";
-    const String celularFijo = "3003525431";
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (controller.nombreController.text.isEmpty) {
-        controller.nombreController.text = nombreFijo;
-        controller.correoController.text = correoFijo;
-        controller.celularController.text = celularFijo;
-      }
-    });
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Reserva de cancha"),
@@ -30,6 +19,22 @@ class ReservaView extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Limpiar formulario',
+            onPressed: () {
+              controller.limpiarFormulario();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Formulario limpiado'),
+                  duration: Duration(seconds: 1),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -37,39 +42,67 @@ class ReservaView extends StatelessWidget {
           key: controller.formKey,
           child: ListView(
             children: [
-              // Nombre completo (ya lleno)
+              // ✅ Nombre completo - AHORA EDITABLE
               TextFormField(
                 controller: controller.nombreController,
                 decoration: const InputDecoration(
                   labelText: "Nombre completo",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.person),
+                  hintText: 'Ej: Juan Pérez',
                 ),
-                readOnly: true,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Por favor ingrese su nombre completo';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
 
-              // Correo electrónico (ya lleno)
+              // ✅ Correo electrónico - AHORA EDITABLE
               TextFormField(
                 controller: controller.correoController,
+                keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   labelText: "Correo electrónico",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.email),
+                  hintText: 'Ej: correo@ejemplo.com',
                 ),
-                readOnly: true,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Por favor ingrese su correo';
+                  }
+                  // Validación básica de email
+                  if (!value.contains('@') || !value.contains('.')) {
+                    return 'Por favor ingrese un correo válido';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
 
-              // Número de celular (ya lleno)
+              // ✅ Número de celular - AHORA EDITABLE
               TextFormField(
                 controller: controller.celularController,
+                keyboardType: TextInputType.phone,
                 decoration: const InputDecoration(
                   labelText: "Número de celular",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.phone),
+                  hintText: 'Ej: 3001234567',
                 ),
-                readOnly: true,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Por favor ingrese su número de celular';
+                  }
+                  // Validación básica para Colombia (10 dígitos)
+                  if (value.replaceAll(RegExp(r'[^0-9]'), '').length < 10) {
+                    return 'Ingrese un número válido (mínimo 10 dígitos)';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
 
@@ -155,6 +188,18 @@ class ReservaView extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () async {
                     if (controller.formKey.currentState!.validate()) {
+                      // Validar que se haya seleccionado fecha
+                      if (controller.fechaReserva == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Por favor seleccione una fecha'),
+                            backgroundColor: Colors.orange,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                        return;
+                      }
+
                       // Mostrar loading
                       showDialog(
                         context: context,
@@ -170,17 +215,81 @@ class ReservaView extends StatelessWidget {
                       if (context.mounted) Navigator.pop(context);
 
                       if (resultado['success']) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(resultado['message']),
-                              backgroundColor: Colors.green,
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
+                        // ✅ OBTENER DATOS DIRECTAMENTE DE FIRESTORE
+                        try {
+                          final firestore = FirestoreService();
                           
-                          // Navegar a pagos
-                          Navigator.pushNamed(context, AppRoutes.pagos);
+                          // Obtener datos de la cancha
+                          String canchaNombre = 'Sin cancha';
+                          String precio = '0';
+                          
+                          if (controller.canchaIdSeleccionada != null) {
+                            final canchaDoc = await firestore
+                                .getCanchasPorSede(controller.sedeIdSeleccionada ?? '');
+                            
+                            final cancha = canchaDoc.firstWhere(
+                              (c) => c.id == controller.canchaIdSeleccionada,
+                              orElse: () => canchaDoc.first,
+                            );
+                            
+                            canchaNombre = cancha.title;
+                            precio = cancha.price.replaceAll(RegExp(r'[^0-9]'), '');
+                          }
+                          
+                          // Obtener datos de la sede
+                          String sedeNombre = 'Sin sede';
+                          
+                          if (controller.sedeIdSeleccionada != null) {
+                            final sedes = await firestore.getSedes();
+                            final sede = sedes.firstWhere(
+                              (s) => s.id == controller.sedeIdSeleccionada,
+                              orElse: () => sedes.first,
+                            );
+                            sedeNombre = sede.title;
+                          }
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(resultado['message']),
+                                backgroundColor: Colors.green,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            
+                            // Guardar datos antes de limpiar
+                            final datosReserva = {
+                              'nombreCompleto': controller.nombreController.text.trim(),
+                              'correoElectronico': controller.correoController.text.trim(),
+                              'numeroCelular': controller.celularController.text.trim(),
+                              'fechaReserva': controller.fechaReserva,
+                              'horaReserva': controller.horaSeleccionada,
+                              'sedeNombre': sedeNombre,
+                              'canchaNombre': canchaNombre,
+                              'precio': precio,
+                            };
+                            
+                            // ✅ LIMPIAR FORMULARIO DESPUÉS DE RESERVA EXITOSA
+                            controller.limpiarFormulario();
+                            
+                            // ✅ NAVEGAR A PAGOS CON LOS DATOS REALES
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.pagos,
+                              arguments: datosReserva,
+                            );
+                          }
+                        } catch (e) {
+                          print('Error al obtener datos: $e');
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Reserva creada pero error al cargar detalles: $e'),
+                                backgroundColor: Colors.orange,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
                         }
                       } else {
                         if (context.mounted) {

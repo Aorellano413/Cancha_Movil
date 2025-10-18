@@ -172,26 +172,62 @@ class FirestoreService {
     await _db.collection('reservas').doc(reservaId).delete();
   }
 
-  /// Verificar disponibilidad de cancha en fecha y hora específica
-  Future<bool> verificarDisponibilidad({
-    required String canchaId,
-    required DateTime fecha,
-    required String horaReserva,
-  }) async {
+  /// ✅ Verificar disponibilidad SIN índice compuesto
+Future<bool> verificarDisponibilidad({
+  required String canchaId,
+  required DateTime fecha,
+  required String horaReserva,
+}) async {
+  try {
+    // Crear timestamps para el inicio y fin del día
     final inicioDelDia = DateTime(fecha.year, fecha.month, fecha.day);
     final finDelDia = DateTime(fecha.year, fecha.month, fecha.day, 23, 59, 59);
 
+    // ✅ Paso 1: Obtener todas las reservas de la cancha (sin filtrar por fecha)
     final snapshot = await _db
         .collection('reservas')
         .where('canchaId', isEqualTo: canchaId)
-        .where('fechaReserva', isGreaterThanOrEqualTo: Timestamp.fromDate(inicioDelDia))
-        .where('fechaReserva', isLessThanOrEqualTo: Timestamp.fromDate(finDelDia))
-        .where('horaReserva', isEqualTo: horaReserva)
-        .where('estado', whereIn: ['pendiente', 'confirmada'])
         .get();
 
-    return snapshot.docs.isEmpty;
+    // ✅ Paso 2: Filtrar manualmente por fecha, hora y estado
+    for (var doc in snapshot.docs) {
+      final data = doc.data();
+      
+      // Extraer datos del documento
+      final Timestamp? fechaTimestamp = data['fechaReserva'];
+      final String? horaDoc = data['horaReserva'];
+      final String? estadoDoc = data['estado'];
+
+      // Verificar si tiene los campos necesarios
+      if (fechaTimestamp == null || horaDoc == null || estadoDoc == null) {
+        continue;
+      }
+
+      // Convertir Timestamp a DateTime
+      final fechaDoc = fechaTimestamp.toDate();
+
+      // Verificar si es el mismo día
+      final mismaFecha = fechaDoc.year == fecha.year &&
+                        fechaDoc.month == fecha.month &&
+                        fechaDoc.day == fecha.day;
+
+      // Verificar si la hora y el estado coinciden
+      if (mismaFecha && 
+          horaDoc == horaReserva && 
+          (estadoDoc == 'pendiente' || estadoDoc == 'confirmada' || estadoDoc == 'pagado')) {
+        // Ya existe una reserva para esa fecha y hora
+        return false;
+      }
+    }
+
+    // No hay conflictos, está disponible
+    return true;
+  } catch (e) {
+    print('❌ Error al verificar disponibilidad: $e');
+    // En caso de error, por seguridad retornamos false
+    return false;
   }
+}
 
   /// Obtener estadísticas del dashboard
   Future<Map<String, dynamic>> getEstadisticasDashboard() async {

@@ -1,19 +1,38 @@
+// lib/views/pagos_view.dart
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PagosView extends StatelessWidget {
   const PagosView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // 🧍 Datos del cliente
-    const String nombre = "Adel Andres Orellano Villegas";
-    const String correo = "andresorellano591@gmail.com";
-    const String numero = "3003525431"; 
-    const String hora = "17:00 - 18:00";
-    const String sede = "La Jugada Principal";
-    const String cancha = "Cancha techada";
-    const String monto = "80.000";
+    // Recibir los argumentos pasados desde ReservaView
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+    
+    if (args == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Error')),
+        body: const Center(
+          child: Text('No se encontraron datos de la reserva'),
+        ),
+      );
+    }
+
+    // Extraer datos reales
+    final String nombre = args['nombreCompleto'] ?? 'Sin nombre';
+    final String correo = args['correoElectronico'] ?? 'Sin correo';
+    final String numero = args['numeroCelular'] ?? 'Sin teléfono';
+    final String hora = args['horaReserva'] ?? 'Sin hora';
+    final String sede = args['sedeNombre'] ?? 'Sin sede';
+    final String cancha = args['canchaNombre'] ?? 'Sin cancha';
+    final String monto = args['precio'] ?? '0';
+    final DateTime? fecha = args['fechaReserva'];
+    
+    final String fechaTexto = fecha != null 
+        ? '${fecha.day}/${fecha.month}/${fecha.year}' 
+        : 'Sin fecha';
 
     const String whatsAppEmpresa = "3007437404";
 
@@ -27,8 +46,9 @@ class PagosView extends StatelessWidget {
 📞 *Teléfono:* $numero
 📍 *Sede:* $sede
 ⚽ *Cancha:* $cancha
+📅 *Fecha:* $fechaTexto
 🕒 *Hora:* $hora
-💰 *Valor total:* \$$monto pesos
+💰 *Valor total:* \$$monto
 
 📤 *Mandar comprobante de pago a la empresa.*
 💬 *Método de pago:* Nequi
@@ -40,11 +60,12 @@ class PagosView extends StatelessWidget {
 
       await launchUrl(uriWhatsapp, mode: LaunchMode.externalApplication);
     }
+
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDarkMode ? Colors.white : Colors.black;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background, 
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
@@ -82,13 +103,18 @@ class PagosView extends StatelessWidget {
                 children: [
                   Text(
                     "Detalles de la Reserva",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   _dato("👤 Nombre", nombre, textColor),
                   _dato("✉️ Correo", correo, textColor),
                   _dato("📞 Teléfono", numero, textColor),
                   const Divider(height: 30, thickness: 0.8),
+                  _dato("📅 Fecha", fechaTexto, textColor),
                   _dato("🕒 Hora", hora, textColor),
                   _dato("📍 Sede", sede, textColor),
                   _dato("⚽ Cancha", cancha, textColor),
@@ -99,11 +125,14 @@ class PagosView extends StatelessWidget {
                       Text(
                         "💰 Monto Total:",
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16, color: textColor),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: textColor,
+                        ),
                       ),
                       Text(
                         "\$$monto",
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.green,
@@ -134,7 +163,8 @@ class PagosView extends StatelessWidget {
                   context: context,
                   builder: (context) => AlertDialog(
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     title: const Text("Pago en Efectivo"),
                     content: Text(
                       "Debe acercarse a la cancha *$sede* para realizar el pago en efectivo. "
@@ -174,12 +204,17 @@ class PagosView extends StatelessWidget {
         children: [
           Expanded(
             flex: 3,
-            child: Text(titulo, style: TextStyle(fontWeight: FontWeight.w600, color: textColor)),
+            child: Text(
+              titulo,
+              style: TextStyle(fontWeight: FontWeight.w600, color: textColor),
+            ),
           ),
           Expanded(
             flex: 5,
-            child: Text(valor,
-                style: TextStyle(fontSize: 16, color: textColor)),
+            child: Text(
+              valor,
+              style: TextStyle(fontSize: 16, color: textColor),
+            ),
           ),
         ],
       ),
@@ -233,14 +268,19 @@ class PagosView extends StatelessWidget {
                   const SizedBox(height: 5),
                   Text(
                     descripcion,
-                    style:
-                        const TextStyle(fontSize: 14, color: Colors.black54),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black54,
+                    ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios,
-                size: 16, color: Colors.black45),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Colors.black45,
+            ),
           ],
         ),
       ),
