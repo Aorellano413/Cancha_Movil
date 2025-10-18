@@ -42,7 +42,7 @@ class ReservaView extends StatelessWidget {
           key: controller.formKey,
           child: ListView(
             children: [
-              // ✅ Nombre completo - AHORA EDITABLE
+              // Nombre completo
               TextFormField(
                 controller: controller.nombreController,
                 decoration: const InputDecoration(
@@ -60,7 +60,7 @@ class ReservaView extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // ✅ Correo electrónico - AHORA EDITABLE
+              // Correo electrónico
               TextFormField(
                 controller: controller.correoController,
                 keyboardType: TextInputType.emailAddress,
@@ -74,7 +74,6 @@ class ReservaView extends StatelessWidget {
                   if (value == null || value.trim().isEmpty) {
                     return 'Por favor ingrese su correo';
                   }
-                  // Validación básica de email
                   if (!value.contains('@') || !value.contains('.')) {
                     return 'Por favor ingrese un correo válido';
                   }
@@ -83,7 +82,7 @@ class ReservaView extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // ✅ Número de celular - AHORA EDITABLE
+              // Número de celular
               TextFormField(
                 controller: controller.celularController,
                 keyboardType: TextInputType.phone,
@@ -97,7 +96,6 @@ class ReservaView extends StatelessWidget {
                   if (value == null || value.trim().isEmpty) {
                     return 'Por favor ingrese su número de celular';
                   }
-                  // Validación básica para Colombia (10 dígitos)
                   if (value.replaceAll(RegExp(r'[^0-9]'), '').length < 10) {
                     return 'Ingrese un número válido (mínimo 10 dígitos)';
                   }
@@ -133,24 +131,68 @@ class ReservaView extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Selección de hora
-              DropdownButtonFormField<String>(
-                value: controller.horaSeleccionada,
-                decoration: const InputDecoration(
-                  labelText: "Hora de reserva",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.access_time),
-                ),
-                items: controller.horas.map((hora) {
-                  return DropdownMenuItem(
-                    value: hora,
-                    child: Text(hora),
+              // Selección de hora (horas ocupadas en rojo y aviso centralizado)
+              FutureBuilder<List<Map<String, dynamic>>>(
+                future: _obtenerHorasConEstado(controller),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final horasConEstado = snapshot.data ?? [];
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      DropdownButtonFormField<String>(
+                        value: controller.horaSeleccionada,
+                        decoration: const InputDecoration(
+                          labelText: "Hora de reserva",
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.access_time),
+                        ),
+                        items: horasConEstado.map((horaData) {
+                          final hora = horaData['hora'] as String;
+                          final ocupada = horaData['ocupada'] as bool;
+
+                          return DropdownMenuItem(
+                            value: hora,
+                            child: Text(
+                              hora,
+                              style: TextStyle(
+                                color: ocupada ? Colors.red : Colors.black,
+                                fontWeight: ocupada ? FontWeight.bold : FontWeight.normal,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          final seleccionada = horasConEstado.firstWhere((h) => h['hora'] == value);
+                          controller.setHoraSeleccionada(value);
+
+                          if (seleccionada['ocupada'] == true) {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text("Hora ocupada"),
+                                content: const Text("La hora seleccionada ya está reservada."),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text("Aceptar"),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                        },
+                        validator: (value) {
+                          if (value == null) return 'Por favor seleccione una hora';
+                          return null;
+                        },
+                      ),
+                    ],
                   );
-                }).toList(),
-                onChanged: (value) => controller.setHoraSeleccionada(value),
-                validator: (value) {
-                  if (value == null) return 'Por favor seleccione una hora';
-                  return null;
                 },
               ),
               const SizedBox(height: 20),
@@ -188,7 +230,6 @@ class ReservaView extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () async {
                     if (controller.formKey.currentState!.validate()) {
-                      // Validar que se haya seleccionado fecha
                       if (controller.fechaReserva == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -200,7 +241,6 @@ class ReservaView extends StatelessWidget {
                         return;
                       }
 
-                      // Mostrar loading
                       showDialog(
                         context: context,
                         barrierDismissible: false,
@@ -210,35 +250,27 @@ class ReservaView extends StatelessWidget {
                       );
 
                       final resultado = await controller.confirmarReserva();
-                      
-                      // Cerrar loading
+
                       if (context.mounted) Navigator.pop(context);
 
                       if (resultado['success']) {
-                        // ✅ OBTENER DATOS DIRECTAMENTE DE FIRESTORE
                         try {
                           final firestore = FirestoreService();
-                          
-                          // Obtener datos de la cancha
                           String canchaNombre = 'Sin cancha';
                           String precio = '0';
-                          
+
                           if (controller.canchaIdSeleccionada != null) {
                             final canchaDoc = await firestore
                                 .getCanchasPorSede(controller.sedeIdSeleccionada ?? '');
-                            
                             final cancha = canchaDoc.firstWhere(
                               (c) => c.id == controller.canchaIdSeleccionada,
                               orElse: () => canchaDoc.first,
                             );
-                            
                             canchaNombre = cancha.title;
                             precio = cancha.price.replaceAll(RegExp(r'[^0-9]'), '');
                           }
-                          
-                          // Obtener datos de la sede
+
                           String sedeNombre = 'Sin sede';
-                          
                           if (controller.sedeIdSeleccionada != null) {
                             final sedes = await firestore.getSedes();
                             final sede = sedes.firstWhere(
@@ -256,8 +288,7 @@ class ReservaView extends StatelessWidget {
                                 behavior: SnackBarBehavior.floating,
                               ),
                             );
-                            
-                            // Guardar datos antes de navegar
+
                             final datosReserva = {
                               'nombreCompleto': controller.nombreController.text.trim(),
                               'correoElectronico': controller.correoController.text.trim(),
@@ -268,16 +299,12 @@ class ReservaView extends StatelessWidget {
                               'canchaNombre': canchaNombre,
                               'precio': precio,
                             };
-                            
-                            // ✅ NAVEGAR A PAGOS CON LOS DATOS REALES
-                            // NO limpiamos aquí porque perdemos los IDs de sede y cancha
+
                             Navigator.pushNamed(
                               context,
                               AppRoutes.pagos,
                               arguments: datosReserva,
                             ).then((_) {
-                              // ✅ LIMPIAR SOLO LOS CAMPOS DEL FORMULARIO
-                              // Mantenemos los IDs de sede y cancha para facilitar múltiples reservas
                               controller.limpiarCamposFormulario();
                             });
                           }
@@ -322,5 +349,22 @@ class ReservaView extends StatelessWidget {
         ),
       ),
     );
+  }
+  Future<List<Map<String, dynamic>>> _obtenerHorasConEstado(ReservaController controller) async {
+    if (controller.canchaIdSeleccionada == null || controller.fechaReserva == null) {
+      // Todas disponibles
+      return controller.horas.map((h) => {'hora': h, 'ocupada': false}).toList();
+    }
+
+    List<Map<String, dynamic>> horasConEstado = [];
+    for (var hora in controller.horas) {
+      final disponible = await FirestoreService().verificarDisponibilidad(
+        canchaId: controller.canchaIdSeleccionada!,
+        fecha: controller.fechaReserva!,
+        horaReserva: hora,
+      );
+      horasConEstado.add({'hora': hora, 'ocupada': !disponible});
+    }
+    return horasConEstado;
   }
 }

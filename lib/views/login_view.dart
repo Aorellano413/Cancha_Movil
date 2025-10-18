@@ -4,6 +4,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../controllers/theme_controller.dart';
 import '../controllers/sedes_controller.dart';
 import '../routes/app_routes.dart';
@@ -12,7 +13,6 @@ import '../utils/populate_firestore.dart';
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
 
-  // ignore: unused_element
   Future<void> _abrirEnlace(String url) async {
     final Uri uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
@@ -81,10 +81,36 @@ class LoginView extends StatelessWidget {
                               );
                             }).toList(),
                           ),
+                          // ====== ICONOS LATERALES: MODO OSCURO + REDES ======
                           Positioned(
                             top: 12,
                             right: 12,
-                            child: _DarkModeButton(),
+                            child: Column(
+                              children: [
+                                _DarkModeButton(),
+                                const SizedBox(height: 12),
+                                _SocialIcon(
+                                  icon: FontAwesomeIcons.whatsapp,
+                                  color: Colors.green,
+                                  onTap: () =>
+                                      _abrirEnlace("https://wa.me/573003525431"),
+                                ),
+                                const SizedBox(height: 12),
+                                _SocialIcon(
+                                  icon: FontAwesomeIcons.instagram,
+                                  color: Colors.purple,
+                                  onTap: () => _abrirEnlace(
+                                      "https://www.instagram.com/reservasports_co"),
+                                ),
+                                const SizedBox(height: 12),
+                                _SocialIcon(
+                                  icon: FontAwesomeIcons.facebook,
+                                  color: Colors.blue,
+                                  onTap: () => _abrirEnlace(
+                                      "https://www.facebook.com/profile.php?id=61577803655371"),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -209,7 +235,6 @@ class LoginView extends StatelessWidget {
                                     await PopulateFirestore.poblarDatosIniciales();
                                     if (context.mounted) {
                                       Navigator.pop(context);
-                                      // ✅ RECARGAR SEDES DESPUÉS DE POBLAR
                                       Provider.of<SedesController>(context, listen: false)
                                           .cargarSedes();
                                       _showSuccessDialog(context,
@@ -218,8 +243,8 @@ class LoginView extends StatelessWidget {
                                   } catch (e) {
                                     if (context.mounted) {
                                       Navigator.pop(context);
-                                      _showErrorDialog(
-                                          context, "Error al poblar datos: $e");
+                                      _showErrorDialog(context,
+                                          "Error al poblar datos: $e");
                                     }
                                   }
                                 },
@@ -284,7 +309,6 @@ class LoginView extends StatelessWidget {
                                         await PopulateFirestore.limpiarBaseDatos();
                                         if (context.mounted) {
                                           Navigator.pop(context);
-                                          // ✅ RECARGAR SEDES DESPUÉS DE LIMPIAR
                                           Provider.of<SedesController>(context, listen: false)
                                               .cargarSedes();
                                           _showSuccessDialog(
@@ -412,7 +436,7 @@ class LoginView extends StatelessWidget {
   }
 }
 
-// ignore: unused_element
+// ====== CLASES AUXILIARES ======
 class _SocialIcon extends StatelessWidget {
   final IconData icon;
   final Color color;
@@ -436,7 +460,7 @@ class _SocialIcon extends StatelessWidget {
           color: color.withOpacity(0.1),
           border: Border.all(color: color.withOpacity(0.5)),
         ),
-        child: Icon(
+        child: FaIcon(
           icon,
           color: color,
           size: 22,
