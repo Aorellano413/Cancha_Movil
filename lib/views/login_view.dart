@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../controllers/theme_controller.dart';
 import '../controllers/sedes_controller.dart';
 import '../routes/app_routes.dart';
@@ -10,6 +12,14 @@ import '../utils/populate_firestore.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
+
+  // ignore: unused_element
+  Future<void> _abrirEnlace(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw 'No se pudo abrir $url';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +29,10 @@ class LoginView extends StatelessWidget {
       "lib/images/1.jpg",
       "lib/images/2.jpg",
       "lib/images/3.jpg",
+      "lib/images/4.jpg",
+      "lib/images/5.jpg",
+      "lib/images/6.jpg",
+      "lib/images/7.jpg",
     ];
 
     return Scaffold(
@@ -34,7 +48,6 @@ class LoginView extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ====== Carrusel superior ======
                     SizedBox(
                       height: h * 0.58,
                       child: Stack(
@@ -69,18 +82,14 @@ class LoginView extends StatelessWidget {
                               );
                             }).toList(),
                           ),
-                          Align(
-                            alignment: Alignment.topRight,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: _DarkModeButton(),
-                            ),
+                          Positioned(
+                            top: 12,
+                            right: 12,
+                            child: _DarkModeButton(),
                           ),
                         ],
                       ),
                     ),
-
-                    // ====== Contenido inferior ======
                     Container(
                       width: double.infinity,
                       padding: EdgeInsets.fromLTRB(30, 30, 30, 16 + bottomInset),
@@ -116,13 +125,14 @@ class LoginView extends StatelessWidget {
                             style: GoogleFonts.poppins(
                               fontSize: 30,
                               fontWeight: FontWeight.bold,
-                              color: Theme.of(context).textTheme.bodyLarge?.color,
+                              color:
+                                  Theme.of(context).textTheme.bodyLarge?.color,
                               letterSpacing: 1.2,
                             ),
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            "Tu mejor aliado para practicar fútbol en Valledupar",
+                            "Tu mejor aliado para reservar las mejores canchas en Valledupar",
                             textAlign: TextAlign.center,
                             style: GoogleFonts.poppins(
                               fontSize: 14,
@@ -135,8 +145,11 @@ class LoginView extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 24),
+<<<<<<< Updated upstream
 
                           // Botón principal
+=======
+>>>>>>> Stashed changes
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
@@ -160,9 +173,7 @@ class LoginView extends StatelessWidget {
                               ),
                             ),
                           ),
-
                           const SizedBox(height: 12),
-
                           TextButton(
                             onPressed: () => Navigator.pushNamed(
                                 context, AppRoutes.loginAdmin),
@@ -174,6 +185,7 @@ class LoginView extends StatelessWidget {
                               ),
                             ),
                           ),
+<<<<<<< Updated upstream
 
                           // ====== BOTÓN TEMPORAL PARA POBLAR DATOS ======
                           const SizedBox(height: 20),
@@ -291,6 +303,63 @@ class LoginView extends StatelessWidget {
                                         }
                                       }
                                     },
+=======
+                          const SizedBox(height: 25),
+                          Divider(
+                            thickness: 1,
+                            color: Colors.grey.withOpacity(0.3),
+                            indent: 40,
+                            endIndent: 40,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            "Síguenos en nuestras redes",
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.color
+                                  ?.withOpacity(0.9),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _SocialIcon(
+                                icon: FontAwesomeIcons.instagram,
+                                color: Colors.purpleAccent,
+                                onTap: () {
+                                  launchUrl(
+                                    Uri.parse(
+                                        'https://www.instagram.com/reservasports_co/'),
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 20),
+                              _SocialIcon(
+                                icon: FontAwesomeIcons.whatsapp,
+                                color: Colors.green,
+                                onTap: () {
+                                  launchUrl(
+                                    Uri.parse('https://wa.me/573003525431'),
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 20),
+                              _SocialIcon(
+                                icon: FontAwesomeIcons.facebook,
+                                color: Colors.blueAccent,
+                                onTap: () {
+                                  launchUrl(
+                                    Uri.parse(
+                                        'https://www.facebook.com/profile.php?id=61577803655371'),
+                                    mode: LaunchMode.externalApplication,
+>>>>>>> Stashed changes
                                   );
                                 },
                               ),
@@ -405,6 +474,39 @@ class LoginView extends StatelessWidget {
   }
 }
 
+class _SocialIcon extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _SocialIcon({
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(40),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color.withOpacity(0.1),
+          border: Border.all(color: color.withOpacity(0.5)),
+        ),
+        child: Icon(
+          icon,
+          color: color,
+          size: 22,
+        ),
+      ),
+    );
+  }
+}
+
 class _DarkModeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -415,28 +517,15 @@ class _DarkModeButton extends StatelessWidget {
       onTap: themeCtrl.toggle,
       borderRadius: BorderRadius.circular(30),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.black.withOpacity(0.35),
           borderRadius: BorderRadius.circular(30),
           border: Border.all(color: Colors.white24),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-              color: Colors.white,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              isDark ? 'Modo oscuro' : 'Modo claro',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+        child: Icon(
+          isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+          color: Colors.white,
         ),
       ),
     );

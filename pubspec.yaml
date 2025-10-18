@@ -17,24 +17,27 @@ dependencies:
   url_launcher: ^6.1.10
   carousel_slider: ^5.0.0
   image_picker: ^1.1.2
+<<<<<<< Updated upstream
   firebase_core: ^2.27.1
   firebase_auth: ^4.17.9
   cloud_firestore: ^4.15.9
+=======
+  font_awesome_flutter: ^10.7.0
+  flutter_launcher_icons: ^0.14.4
+>>>>>>> Stashed changes
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-  flutter_launcher_icons: ^0.13.1  
 
 flutter:
   uses-material-design: true
 
   assets:
     - lib/images/
-    - web/icons/ReservaSports.png 
 
-flutter_icons:
+flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "web/icons/ReservaSports.png" 
+  adaptive_icon_background: "#ffffff"
