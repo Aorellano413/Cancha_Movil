@@ -22,13 +22,13 @@ class ReservaView extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Limpiar formulario',
+            tooltip: 'Limpiar campos',
             onPressed: () {
-              controller.limpiarFormulario();
+              controller.limpiarCamposFormulario();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Formulario limpiado'),
-                  duration: Duration(seconds: 1),
+                  content: Text('Campos limpiados (se mantiene la cancha seleccionada)'),
+                  duration: Duration(seconds: 2),
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -257,7 +257,7 @@ class ReservaView extends StatelessWidget {
                               ),
                             );
                             
-                            // Guardar datos antes de limpiar
+                            // Guardar datos antes de navegar
                             final datosReserva = {
                               'nombreCompleto': controller.nombreController.text.trim(),
                               'correoElectronico': controller.correoController.text.trim(),
@@ -269,15 +269,17 @@ class ReservaView extends StatelessWidget {
                               'precio': precio,
                             };
                             
-                            // ✅ LIMPIAR FORMULARIO DESPUÉS DE RESERVA EXITOSA
-                            controller.limpiarFormulario();
-                            
                             // ✅ NAVEGAR A PAGOS CON LOS DATOS REALES
+                            // NO limpiamos aquí porque perdemos los IDs de sede y cancha
                             Navigator.pushNamed(
                               context,
                               AppRoutes.pagos,
                               arguments: datosReserva,
-                            );
+                            ).then((_) {
+                              // ✅ LIMPIAR SOLO LOS CAMPOS DEL FORMULARIO
+                              // Mantenemos los IDs de sede y cancha para facilitar múltiples reservas
+                              controller.limpiarCamposFormulario();
+                            });
                           }
                         } catch (e) {
                           print('Error al obtener datos: $e');

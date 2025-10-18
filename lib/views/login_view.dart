@@ -4,8 +4,9 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../controllers/theme_controller.dart';
+import '../controllers/sedes_controller.dart';
 import '../routes/app_routes.dart';
-import '../utils/populate_firestore.dart'; // Importar el script de población
+import '../utils/populate_firestore.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -175,7 +176,6 @@ class LoginView extends StatelessWidget {
                           ),
 
                           // ====== BOTÓN TEMPORAL PARA POBLAR DATOS ======
-                          // Elimina o comenta esta sección después de poblar los datos
                           const SizedBox(height: 20),
                           const Divider(),
                           const SizedBox(height: 12),
@@ -201,13 +201,16 @@ class LoginView extends StatelessWidget {
                                   try {
                                     await PopulateFirestore.poblarDatosIniciales();
                                     if (context.mounted) {
-                                      Navigator.pop(context); // Cerrar loading
+                                      Navigator.pop(context);
+                                      // ✅ RECARGAR SEDES DESPUÉS DE POBLAR
+                                      Provider.of<SedesController>(context, listen: false)
+                                          .cargarSedes();
                                       _showSuccessDialog(context,
                                           "Datos poblados exitosamente");
                                     }
                                   } catch (e) {
                                     if (context.mounted) {
-                                      Navigator.pop(context); // Cerrar loading
+                                      Navigator.pop(context);
                                       _showErrorDialog(
                                           context, "Error al poblar datos: $e");
                                     }
@@ -274,6 +277,9 @@ class LoginView extends StatelessWidget {
                                         await PopulateFirestore.limpiarBaseDatos();
                                         if (context.mounted) {
                                           Navigator.pop(context);
+                                          // ✅ RECARGAR SEDES DESPUÉS DE LIMPIAR
+                                          Provider.of<SedesController>(context, listen: false)
+                                              .cargarSedes();
                                           _showSuccessDialog(
                                               context, "Base de datos limpiada");
                                         }
@@ -290,7 +296,6 @@ class LoginView extends StatelessWidget {
                               ),
                             ],
                           ),
-                          // ====== FIN BOTONES TEMPORALES ======
                         ],
                       ),
                     ),
@@ -438,7 +443,6 @@ class _DarkModeButton extends StatelessWidget {
   }
 }
 
-// Widget auxiliar para los botones de desarrollo
 class _DevButton extends StatelessWidget {
   final IconData icon;
   final String label;

@@ -132,6 +132,17 @@ class ReservaController extends ChangeNotifier {
     }
   }
 
+  /// ✅ Limpiar solo los campos del formulario (mantiene sede y cancha)
+  void limpiarCamposFormulario() {
+    nombreController.clear();
+    correoController.clear();
+    celularController.clear();
+    _fechaReserva = null;
+    _horaSeleccionada = null;
+    notifyListeners();
+  }
+
+  /// Limpiar todo el formulario (incluyendo sede y cancha)
   void limpiarFormulario() {
     nombreController.clear();
     correoController.clear();

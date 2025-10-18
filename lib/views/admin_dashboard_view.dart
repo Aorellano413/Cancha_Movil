@@ -34,6 +34,11 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
     super.initState();
     _cargarDatos();
     _iniciarCronometro();
+    
+    // ✅ ESCUCHAR CAMBIOS EN TIEMPO REAL EN LAS SEDES
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<SedesController>(context, listen: false).escucharSedes();
+    });
   }
 
   void _iniciarCronometro() {
@@ -57,13 +62,17 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
     setState(() => _loadingReservas = true);
     try {
       final reservas = await _firestore.getReservasCompletas();
-      setState(() {
-        reservasRecientes = reservas;
-        _loadingReservas = false;
-      });
+      if (mounted) {
+        setState(() {
+          reservasRecientes = reservas;
+          _loadingReservas = false;
+        });
+      }
     } catch (e) {
       debugPrint('Error al cargar reservas: $e');
-      setState(() => _loadingReservas = false);
+      if (mounted) {
+        setState(() => _loadingReservas = false);
+      }
     }
   }
 
@@ -71,13 +80,17 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
     setState(() => _loadingEstadisticas = true);
     try {
       final stats = await _firestore.getEstadisticasDashboard();
-      setState(() {
-        estadisticas = stats;
-        _loadingEstadisticas = false;
-      });
+      if (mounted) {
+        setState(() {
+          estadisticas = stats;
+          _loadingEstadisticas = false;
+        });
+      }
     } catch (e) {
       debugPrint('Error al cargar estadísticas: $e');
-      setState(() => _loadingEstadisticas = false);
+      if (mounted) {
+        setState(() => _loadingEstadisticas = false);
+      }
     }
   }
 
@@ -116,6 +129,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
         reserva: reserva,
         onEstadoActualizado: () async {
           await _cargarReservas();
+          await _cargarEstadisticas();
           _mostrarSnackbar('Estado de reserva actualizado');
         },
       ),
@@ -141,6 +155,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
         editIndex: editIndex,
         onGuardado: (mensaje) {
           _mostrarSnackbar(mensaje);
+          _cargarEstadisticas();
         },
       ),
     );
@@ -159,6 +174,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Eliminar'),
           ),
         ],
@@ -170,6 +186,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
         await Provider.of<SedesController>(context, listen: false)
             .eliminarSedeCustom(customIndex);
         _mostrarSnackbar('Sede eliminada exitosamente');
+        await _cargarEstadisticas();
       } catch (e) {
         _mostrarSnackbar('Error al eliminar: $e');
       }
@@ -184,7 +201,10 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: _buildAppBar(),
       body: RefreshIndicator(
-        onRefresh: _cargarDatos,
+        onRefresh: () async {
+          await _cargarDatos();
+          await sedesController.cargarSedes();
+        },
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -219,7 +239,11 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
       actions: [
         IconButton(
           icon: const Icon(Icons.refresh, color: Colors.white),
-          onPressed: _cargarDatos,
+          onPressed: () async {
+            await _cargarDatos();
+            await Provider.of<SedesController>(context, listen: false).cargarSedes();
+            _mostrarSnackbar('Datos actualizados');
+          },
           tooltip: 'Actualizar datos',
         ),
         TextButton.icon(
@@ -298,6 +322,55 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
   }
 
   Widget _buildSedesSection(SedesController controller) {
+    // ✅ MOSTRAR MENSAJE SI NO HAY SEDES
+    if (controller.customSedes.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Canchas y sedes",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Column(
+              children: [
+                Icon(Icons.location_off, size: 48, color: Colors.grey.shade400),
+                const SizedBox(height: 12),
+                Text(
+                  'No hay sedes creadas',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Presiona el botón "Crear sede" para agregar una',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -315,33 +388,15 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(right: 12),
-            itemCount: controller.customSedes.length + 1,
+            itemCount: controller.customSedes.length,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (_, index) {
-              if (index == 0) {
-                return SizedBox(
-                  width: 240,
-                  child: OutlinedButton.icon(
-                    onPressed: () => _mostrarFormularioSede(),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Crear sede'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.all(16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(22),
-                      ),
-                    ),
-                  ),
-                );
-              }
-
-              final sedeIndex = index - 1;
-              final sede = controller.customSedes[sedeIndex];
+              final sede = controller.customSedes[index];
 
               return SedeCard(
                 sede: sede,
-                onEditar: () => _mostrarFormularioSede(editIndex: sedeIndex),
-                onEliminar: () => _confirmarEliminarSede(sedeIndex),
+                onEditar: () => _mostrarFormularioSede(editIndex: index),
+                onEliminar: () => _confirmarEliminarSede(index),
               );
             },
           ),
