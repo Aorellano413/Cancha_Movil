@@ -837,7 +837,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
           ),
           const SizedBox(width: 10),
           const Expanded(
-            child: Text("Admin Andrés Orellano", style: TextStyle(fontWeight: FontWeight.w600)),
+            child: Text("Andres Orellano", style: TextStyle(fontWeight: FontWeight.w600)),
           ),
           const Icon(Icons.timer_outlined, size: 18, color: Colors.black54),
           const SizedBox(width: 6),

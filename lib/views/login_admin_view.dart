@@ -116,7 +116,7 @@ class _LoginAdminViewState extends State<LoginAdminView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "Login",
+          "Inicio de Sesión",
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -133,7 +133,6 @@ class _LoginAdminViewState extends State<LoginAdminView> {
         ),
         const SizedBox(height: 30),
 
-        // Usuario
         TextField(
           controller: _userController,
           decoration: InputDecoration(
@@ -149,7 +148,6 @@ class _LoginAdminViewState extends State<LoginAdminView> {
         ),
         const SizedBox(height: 20),
 
-        // Contraseña
         TextField(
           controller: _passController,
           obscureText: !_showPassword,
@@ -179,7 +177,6 @@ class _LoginAdminViewState extends State<LoginAdminView> {
 
         const SizedBox(height: 25),
 
-        // Botón ingresar
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(

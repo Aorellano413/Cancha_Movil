@@ -327,6 +327,18 @@ class LoginView extends StatelessWidget {
                               ),
                             ],
                           ),
+
+                          // ====== PIE DE PÁGINA RESERVASPORTS ======
+                          const SizedBox(height: 30),
+                          Text(
+                            "© 2025 ReservaSports. Todos los derechos reservados.",
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -435,8 +447,6 @@ class LoginView extends StatelessWidget {
     );
   }
 }
-
-// ====== CLASES AUXILIARES ======
 class _SocialIcon extends StatelessWidget {
   final IconData icon;
   final Color color;
@@ -447,7 +457,6 @@ class _SocialIcon extends StatelessWidget {
     required this.color,
     required this.onTap,
   });
-
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -469,7 +478,6 @@ class _SocialIcon extends StatelessWidget {
     );
   }
 }
-
 class _DarkModeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -494,7 +502,6 @@ class _DarkModeButton extends StatelessWidget {
     );
   }
 }
-
 class _DevButton extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -507,7 +514,6 @@ class _DevButton extends StatelessWidget {
     required this.color,
     required this.onPressed,
   });
-
   @override
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
