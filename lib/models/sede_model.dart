@@ -1,6 +1,6 @@
 // ============= lib/models/sede_model.dart =============
 class SedeModel {
-  final String? id; // ID de Firestore
+  final String? id; 
   final String imagePath;
   final String title;
   final String subtitle;

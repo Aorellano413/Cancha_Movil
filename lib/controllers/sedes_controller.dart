@@ -46,8 +46,6 @@ class SedesController extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  /// Escuchar cambios en tiempo real (opcional)
   void escucharSedes() {
     _firestore.getSedesStream().listen(
       (sedes) {
@@ -70,8 +68,6 @@ class SedesController extends ChangeNotifier {
     try {
       final sedeConTag = sede.copyWith(isCustom: true, tag: "Día - Noche");
       final id = await _firestore.agregarSede(sedeConTag);
-      
-      // Agregar a la lista local con el ID
       _todasLasSedes.add(sedeConTag.copyWith(id: id));
       notifyListeners();
     } catch (e) {
@@ -138,8 +134,6 @@ class SedesController extends ChangeNotifier {
       rethrow;
     }
   }
-
-  /// Obtener sede por ID
   SedeModel? obtenerSedePorId(String sedeId) {
     try {
       return _todasLasSedes.firstWhere((s) => s.id == sedeId);

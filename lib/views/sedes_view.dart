@@ -30,7 +30,6 @@ class _SedesViewState extends State<SedesView> {
         },
       );
     }
-    // Rutas locales (Android/iOS/desktop)
     if (!kIsWeb && (path.startsWith('/') || path.contains(':\\'))) {
       return Image.file(
         File(path),
@@ -182,8 +181,6 @@ class _SedesViewState extends State<SedesView> {
             );
             return;
           }
-
-          // Navegar a la vista de canchas pasando el ID y nombre de la sede
           Navigator.push(
             context,
             MaterialPageRoute(
