@@ -22,13 +22,9 @@ dependencies:
   cloud_firestore: ^4.15.9
   intl: ^0.18.1
   font_awesome_flutter: ^10.4.0
-<<<<<<< HEAD
-  fl_chart: ^0.69.0   
-=======
   fl_chart: ^0.69.0
   geolocator: ^11.0.0
   geocoding: ^3.0.0
->>>>>>> origin/DiegoVistasNueva
 
 dev_dependencies:
   flutter_test:
@@ -44,8 +40,4 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-<<<<<<< HEAD
   adaptive_icon_background: "#ffffff"
-=======
-  adaptive_icon_background: "#ffffff"
->>>>>>> origin/DiegoVistasNueva
