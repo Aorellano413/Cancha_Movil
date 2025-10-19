@@ -8,6 +8,7 @@ import '../controllers/canchas_controller.dart';
 import '../services/firestore_service.dart';
 import '../routes/app_routes.dart';
 import '../widgets/estadistica_card.dart';
+import '../widgets/reserva_detalle_sheet.dart'; // ✅ IMPORTAR
 
 class PropietarioDashboardView extends StatefulWidget {
   const PropietarioDashboardView({super.key});
@@ -80,14 +81,10 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
 
     setState(() => _loadingReservas = true);
     try {
-      final todasReservas = await _firestore.getReservasCompletas();
+      final todasReservas = await _firestore.getReservasCompletasPorSede(_sedeId!);
       
-      // Filtrar por sede y fecha
+      // ✅ FILTRO CORREGIDO: Comparar solo año, mes y día
       final reservasFiltradas = todasReservas.where((reserva) {
-        // Filtrar por sede
-        if (reserva['sedeId'] != _sedeId) return false;
-
-        // Filtrar por fecha según el filtro seleccionado
         final fechaReserva = reserva['fechaReserva'];
         if (fechaReserva == null) return false;
 
@@ -102,18 +99,21 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
         
         switch (_filtroTiempo) {
           case 'hoy':
+            // ✅ Comparar solo año, mes y día (sin hora)
             return fecha.year == ahora.year &&
                    fecha.month == ahora.month &&
                    fecha.day == ahora.day;
           case 'semana':
-            final inicioSemana = ahora.subtract(Duration(days: 7));
-            return fecha.isAfter(inicioSemana);
+            // ✅ Últimos 7 días (inclusive hoy)
+            final inicioSemana = DateTime(ahora.year, ahora.month, ahora.day).subtract(Duration(days: 7));
+            final fechaSolo = DateTime(fecha.year, fecha.month, fecha.day);
+            return fechaSolo.isAfter(inicioSemana) || fechaSolo.isAtSameMomentAs(inicioSemana);
           case 'mes':
-            final inicioMes = DateTime(ahora.year, ahora.month, 1);
-            return fecha.isAfter(inicioMes);
+            // ✅ Mes actual completo
+            return fecha.year == ahora.year && fecha.month == ahora.month;
           case 'año':
-            final inicioAno = DateTime(ahora.year, 1, 1);
-            return fecha.isAfter(inicioAno);
+            // ✅ Año actual completo
+            return fecha.year == ahora.year;
           default:
             return true;
         }
@@ -136,35 +136,11 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
 
     setState(() => _loadingEstadisticas = true);
     try {
-      final stats = await _firestore.getEstadisticasDashboard();
+      final stats = await _firestore.getEstadisticasPorSede(_sedeId!);
       
-      // Filtrar estadísticas por sede
-      final todasReservas = await _firestore.getReservasCompletas();
-      final reservasSede = todasReservas.where((r) => r['sedeId'] == _sedeId).toList();
-
-      int pendientes = 0;
-      int pagadas = 0;
-      int canceladas = 0;
-
-      for (var reserva in reservasSede) {
-        final estado = reserva['estado'] ?? 'pendiente';
-        if (estado == 'pendiente') pendientes++;
-        if (estado == 'pagado') pagadas++;
-        if (estado == 'cancelado') canceladas++;
-      }
-
-      // Obtener canchas de la sede
-      final canchas = await _firestore.getCanchasPorSede(_sedeId!);
-
       if (mounted) {
         setState(() {
-          _estadisticas = {
-            'totalReservas': reservasSede.length,
-            'totalCanchas': canchas.length,
-            'reservasPendientes': pendientes,
-            'reservasPagadas': pagadas,
-            'reservasCanceladas': canceladas,
-          };
+          _estadisticas = stats;
           _loadingEstadisticas = false;
         });
       }
@@ -189,6 +165,27 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
   void _mostrarSnackbar(String mensaje) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(mensaje), behavior: SnackBarBehavior.floating),
+    );
+  }
+
+  // ✅ NUEVO: Mostrar detalle de reserva
+  Future<void> _mostrarDetalleReserva(Map<String, dynamic> reserva) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: const Color(0xFFEAEFF3),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (ctx) => ReservaDetalleSheet(
+        reserva: reserva,
+        onEstadoActualizado: () async {
+          await _cargarReservas();
+          await _cargarEstadisticas();
+          _mostrarSnackbar('Estado de reserva actualizado');
+        },
+      ),
     );
   }
 
@@ -378,7 +375,7 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
       bottomNavigationBar: _buildBottomBar(authController),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          Navigator.pushNamed(context, '/propietarioCanchas');
+          Navigator.pushNamed(context, AppRoutes.propietarioCanchas);
         },
         icon: const Icon(Icons.sports_soccer),
         label: const Text('Mis Canchas'),
@@ -525,7 +522,11 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
             separatorBuilder: (_, __) => const SizedBox(height: 6),
             itemBuilder: (_, index) {
               final reserva = _reservas[index];
-              return _ReservaCard(reserva: reserva);
+              // ✅ AGREGADO: onTap para mostrar detalle
+              return _ReservaCard(
+                reserva: reserva,
+                onTap: () => _mostrarDetalleReserva(reserva),
+              );
             },
           ),
       ],
@@ -651,10 +652,15 @@ class _LegendaItem extends StatelessWidget {
   }
 }
 
+// ✅ MODIFICADO: Agregado onTap
 class _ReservaCard extends StatelessWidget {
   final Map<String, dynamic> reserva;
+  final VoidCallback onTap; // ✅ AGREGADO
 
-  const _ReservaCard({required this.reserva});
+  const _ReservaCard({
+    required this.reserva,
+    required this.onTap, // ✅ AGREGADO
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -678,74 +684,85 @@ class _ReservaCard extends StatelessWidget {
         estadoColor = const Color(0xFFFFA000);
     }
 
-    return Card(
-      elevation: 0.8,
-      color: const Color(0xFFF0F3F7),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: const Color(0xFF0083B0),
-              child: Text(
-                inicial,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+    // ✅ MODIFICADO: Envuelto en InkWell
+    return InkWell(
+      onTap: onTap, // ✅ AGREGADO
+      borderRadius: BorderRadius.circular(12),
+      child: Card(
+        elevation: 0.8,
+        color: const Color(0xFFF0F3F7),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: const Color(0xFF0083B0),
+                child: Text(
+                  inicial,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          nombre,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            nombre,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: estadoColor.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: estadoColor.withOpacity(0.5),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: estadoColor.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: estadoColor.withOpacity(0.5),
+                            ),
+                          ),
+                          child: Text(
+                            estado.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: estadoColor,
+                            ),
                           ),
                         ),
-                        child: Text(
-                          estado.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: estadoColor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '$cancha • $hora',
-                    style: const TextStyle(color: Colors.black54, fontSize: 12),
-                  ),
-                ],
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$cancha • $hora',
+                      style: const TextStyle(color: Colors.black54, fontSize: 12),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              // ✅ AGREGADO: Icono visual de que es clickeable
+              const Icon(
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: Colors.black38,
+              ),
+            ],
+          ),
         ),
       ),
     );
