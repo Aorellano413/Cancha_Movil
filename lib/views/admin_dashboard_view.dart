@@ -629,6 +629,13 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
       ),
       actions: [
         IconButton(
+          icon: const Icon(Icons.people, color: Colors.white),
+          onPressed: () {
+            Navigator.pushNamed(context, AppRoutes.superAdminUsuarios);
+          },
+          tooltip: 'Gestión de usuarios',
+        ),
+        IconButton(
           icon: const Icon(Icons.refresh, color: Colors.white),
           onPressed: () async {
             await _cargarDatos();
