@@ -205,382 +205,199 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
     
     return conteo;
   }
-
-  // Colores vibrantes para cada barra
   List<Color> _getSedeColors() {
     return [
-      const Color(0xFF0083B0), // Azul principal
-      const Color(0xFF00BCD4), // Cyan
-      const Color(0xFF43A047), // Verde
-      const Color(0xFFFF6F00), // Naranja oscuro
-      const Color(0xFF8E24AA), // Púrpura
-      const Color(0xFFE91E63), // Rosa
-      const Color(0xFF3F51B5), // Índigo
-      const Color(0xFFFFC107), // Ámbar
-      const Color(0xFF009688), // Teal
-      const Color(0xFFD32F2F), // Rojo
+      const Color(0xFF0083B0), 
+      const Color(0xFF00BCD4), 
+      const Color(0xFF43A047),
+      const Color(0xFFFF6F00),
+      const Color(0xFF8E24AA),
+      const Color(0xFFE91E63), 
+      const Color(0xFF3F51B5),
+      const Color(0xFFFFC107), 
+      const Color(0xFF009688), 
+      const Color(0xFFD32F2F), 
     ];
   }
 
   String _abreviarNombreSede(String nombre) {
-    // Si el nombre es muy largo, lo abrevia inteligentemente
+ 
     if (nombre.length <= 15) return nombre;
     
-    // Buscar palabras clave para abreviar
     final palabras = nombre.split(' ');
     if (palabras.length > 1) {
-      // Si tiene "Sede -", quitarlo
+ 
       if (palabras[0].toLowerCase() == 'sede' && palabras.length > 2) {
         return palabras.sublist(2).join(' ');
       }
-      // Tomar las primeras letras de cada palabra importante
+  
       return palabras.take(2).join(' ');
     }
-    
-    // Si es una sola palabra muy larga, truncar
+
     return '${nombre.substring(0, 12)}...';
   }
 
-  Widget _buildGraficaReservasPorSede() {
-    if (reservasRecientes.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(32),
+int? _touchedIndex;
+
+Widget _buildGraficaReservasPorSede() {
+  if (reservasRecientes.isEmpty) {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF0083B0).withOpacity(0.1),
+            const Color(0xFF00BCD4).withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.pie_chart_outline_rounded, size: 64, color: Colors.grey.shade300),
+          const SizedBox(height: 16),
+          Text('No hay datos para mostrar',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+          const SizedBox(height: 8),
+          Text('Las reservas aparecerán aquí',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
+        ],
+      ),
+    );
+  }
+
+  final conteo = _contarReservasPorSede();
+  if (conteo.isEmpty) return const SizedBox.shrink();
+
+  final sedes = conteo.keys.toList();
+  final cantidades = conteo.values.toList();
+  final total = cantidades.fold<int>(0, (a, b) => a + b);
+  final colores = _getSedeColors();
+  final screenWidth = MediaQuery.of(context).size.width;
+
+  List<PieChartSectionData> _sections() {
+  return List.generate(sedes.length, (i) {
+    final value = cantidades[i].toDouble();
+    final pct = total == 0 ? 0.0 : (value / total) * 100.0;
+    final isTouched = _touchedIndex == i;
+    final String title = isTouched
+        ? _abreviarNombreSede(sedes[i])
+        : (pct >= 7 ? '${pct.toStringAsFixed(1)}%' : '');
+
+    return PieChartSectionData(
+      color: colores[i % colores.length],
+      value: value,
+      title: title,
+      radius: isTouched ? 80.0 : 70.0,
+      titleStyle: TextStyle(
+        fontSize: isTouched ? 12 : 12,
+        fontWeight: FontWeight.w700,
+        color: const Color.fromARGB(255, 0, 0, 0),
+      ),
+    );
+  });
+}
+
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      // Header (nuevo título)
+      Container(
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              const Color(0xFF0083B0).withOpacity(0.1),
-              const Color(0xFF00BCD4).withOpacity(0.05),
-            ],
+          gradient: const LinearGradient(
+            colors: [Color(0xFF0083B0), Color(0xFF00BCD4)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(color: const Color(0xFF0083B0).withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8)),
+          ],
         ),
-        child: Column(
+        child: Row(
           children: [
-            Icon(Icons.bar_chart, size: 64, color: Colors.grey.shade300),
-            const SizedBox(height: 16),
-            Text(
-              'No hay datos para mostrar',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade600,
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: const Icon(Icons.pie_chart, color: Colors.white, size: 28),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Las reservas aparecerán aquí',
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Gráfica de reservas',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                  const SizedBox(height: 4),
+                  Text('$total reservas en ${sedes.length} sede${sedes.length != 1 ? 's' : ''}',
+                      style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w500)),
+                ],
+              ),
             ),
           ],
         ),
-      );
-    }
+      ),
 
-    final conteo = _contarReservasPorSede();
-    if (conteo.isEmpty) return const SizedBox.shrink();
-    
-    final sedes = conteo.keys.toList();
-    final cantidades = conteo.values.toList();
-    final maxCantidad = cantidades.reduce((a, b) => a > b ? a : b);
-    final totalReservas = cantidades.reduce((a, b) => a + b);
-    final colores = _getSedeColors();
-    final screenWidth = MediaQuery.of(context).size.width;
+      const SizedBox(height: 20),
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header con degradado
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                const Color(0xFF0083B0),
-                const Color(0xFF00BCD4),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF0083B0).withOpacity(0.3),
-                blurRadius: 15,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.bar_chart_rounded,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Reservas por sede",
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "$totalReservas reservas en ${sedes.length} sede${sedes.length != 1 ? 's' : ''}",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white.withOpacity(0.9),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.trending_up, color: Colors.white, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Activo',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+      // Tarjeta con el PieChart (SIN leyenda inferior)
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 10))],
         ),
-        
-        const SizedBox(height: 20),
-        
-        // Gráfica con diseño premium
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              SizedBox(
-                height: 280,
-                child: BarChart(
-                  BarChartData(
-                    alignment: BarChartAlignment.spaceAround,
-                    maxY: maxCantidad.toDouble() + 2,
-                    minY: 0,
-                    barTouchData: BarTouchData(
-                      enabled: true,
-                      touchTooltipData: BarTouchTooltipData(
-                        tooltipRoundedRadius: 12,
-                        tooltipPadding: const EdgeInsets.all(12),
-                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                          return BarTooltipItem(
-                            '${sedes[group.x]}\n',
-                            const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                            children: [
-                              TextSpan(
-                                text: '${rod.toY.toInt()} reserva${rod.toY.toInt() != 1 ? 's' : ''}',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.8),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          );
+        child: Column(
+          children: [
+            SizedBox(
+              height: 300,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  PieChart(
+                    PieChartData(
+                      sections: _sections(),
+                      sectionsSpace: 2,
+                      centerSpaceRadius: screenWidth < 380 ? 48 : 58,
+                      startDegreeOffset: -90,
+                      pieTouchData: PieTouchData(
+                        enabled: true,
+                        touchCallback: (event, response) {
+                          if (!event.isInterestedForInteractions || response == null || response.touchedSection == null) {
+                            setState(() => _touchedIndex = null);
+                            return;
+                          }
+                          setState(() => _touchedIndex = response.touchedSection!.touchedSectionIndex);
                         },
                       ),
                     ),
-                    titlesData: FlTitlesData(
-                      bottomTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: screenWidth < 400 ? 35 : 45,
-                          getTitlesWidget: (value, meta) {
-                            if (value % 1 != 0) return const SizedBox.shrink();
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: Text(
-                                value.toInt().toString(),
-                                style: TextStyle(
-                                  fontSize: screenWidth < 400 ? 11 : 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF6B7280),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      topTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                      rightTitles: const AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
-                      ),
-                    ),
-                    gridData: FlGridData(
-                      show: true,
-                      drawVerticalLine: false,
-                      horizontalInterval: 1,
-                      getDrawingHorizontalLine: (value) {
-                        return FlLine(
-                          color: Colors.grey.shade200,
-                          strokeWidth: 1,
-                          dashArray: [5, 5],
-                        );
-                      },
-                    ),
-                    borderData: FlBorderData(
-                      show: true,
-                      border: Border(
-                        left: BorderSide(color: Colors.grey.shade300, width: 1.5),
-                        bottom: BorderSide(color: Colors.grey.shade300, width: 1.5),
-                      ),
-                    ),
-                    barGroups: List.generate(sedes.length, (index) {
-                      final color = colores[index % colores.length];
-                      final barWidth = screenWidth < 400 ? 25.0 : 35.0;
-                      return BarChartGroupData(
-                        x: index,
-                        barRods: [
-                          BarChartRodData(
-                            toY: cantidades[index].toDouble(),
-                            gradient: LinearGradient(
-                              colors: [
-                                color,
-                                color.withOpacity(0.7),
-                              ],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            ),
-                            width: barWidth,
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(8),
-                            ),
-                            backDrawRodData: BackgroundBarChartRodData(
-                              show: true,
-                              toY: maxCantidad.toDouble() + 2,
-                              color: Colors.grey.shade100,
-                            ),
-                          ),
-                        ],
-                      );
-                    }),
                   ),
-                ),
+                  // Centro con total
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Total', style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                      Text('$total', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                    ],
+                  ),
+                ],
               ),
-              
-              const SizedBox(height: 20),
-              const Divider(height: 1),
-              const SizedBox(height: 16),
-              
-              // Leyenda con estadísticas (responsive)
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                alignment: WrapAlignment.center,
-                children: List.generate(sedes.length, (index) {
-                  final porcentaje = ((cantidades[index] / totalReservas) * 100).toStringAsFixed(1);
-                  final color = colores[index % colores.length];
-                  
-                  return Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: screenWidth < 400 ? 8 : 12,
-                      vertical: screenWidth < 400 ? 6 : 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: color.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: color,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            sedes[index],
-                            style: TextStyle(
-                              fontSize: screenWidth < 400 ? 11 : 13,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade800,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${cantidades[index]} ($porcentaje%)',
-                          style: TextStyle(
-                            fontSize: screenWidth < 400 ? 10 : 12,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ],
-    );
-  }
-
-  // ================= BUILD =================
+      ),
+    ],
+  );
+}
 
   @override
   Widget build(BuildContext context) {

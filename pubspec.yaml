@@ -1,5 +1,5 @@
 name: ReservaSports
-description: "A new Flutter project."
+description: "Aplicación de reservas de canchas deportivas"
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -25,19 +25,23 @@ dependencies:
   fl_chart: ^0.69.0
   geolocator: ^11.0.0
   geocoding: ^3.0.0
+  mailer: ^6.1.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1   
+
+flutter_launcher_icons:             
+  android: true
+  ios: true
+  image_path: "lib/images/logoReservaSports.jpg"
+  adaptive_icon_foreground: "lib/images/logoReservaSports.jpg"
+  adaptive_icon_background: "#FFFFFF"
 
 flutter:
   uses-material-design: true
 
   assets:
-    - lib/images/
-
-flutter_launcher_icons:
-  android: true
-  ios: true
-  adaptive_icon_background: "#ffffff"
+    - lib/images/  

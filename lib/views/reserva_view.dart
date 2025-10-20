@@ -4,9 +4,58 @@ import 'package:provider/provider.dart';
 import '../controllers/reserva_controller.dart';
 import '../services/firestore_service.dart';
 import '../routes/app_routes.dart';
+import '../services/email_service.dart';
 
-class ReservaView extends StatelessWidget {
+class ReservaView extends StatefulWidget {
   const ReservaView({super.key});
+
+  @override
+  State<ReservaView> createState() => _ReservaViewState();
+}
+
+class _ReservaViewState extends State<ReservaView> {
+  bool _processing = false;
+
+  Future<void> _mostrarProcesando(BuildContext context, {String mensaje = 'Procesando reserva…'}) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      useRootNavigator: true,
+      builder: (_) {
+        return Dialog(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 64),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(strokeWidth: 3),
+                ),
+                const SizedBox(width: 16),
+                Flexible(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Un momento…', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 4),
+                      Text(mensaje, style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +91,6 @@ class ReservaView extends StatelessWidget {
           key: controller.formKey,
           child: ListView(
             children: [
-              // Nombre completo
               TextFormField(
                 controller: controller.nombreController,
                 decoration: const InputDecoration(
@@ -59,8 +107,6 @@ class ReservaView extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 16),
-
-              // Correo electrónico
               TextFormField(
                 controller: controller.correoController,
                 keyboardType: TextInputType.emailAddress,
@@ -81,8 +127,6 @@ class ReservaView extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 16),
-
-              // Número de celular
               TextFormField(
                 controller: controller.celularController,
                 keyboardType: TextInputType.phone,
@@ -103,8 +147,6 @@ class ReservaView extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 16),
-
-              // Fecha de reserva
               ListTile(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -130,13 +172,15 @@ class ReservaView extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 16),
-
-              // Selección de hora (horas ocupadas en rojo y aviso centralizado)
               FutureBuilder<List<Map<String, dynamic>>>(
                 future: _obtenerHorasConEstado(controller),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(
+                        child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: CircularProgressIndicator(),
+                    ));
                   }
 
                   final horasConEstado = snapshot.data ?? [];
@@ -155,39 +199,31 @@ class ReservaView extends StatelessWidget {
                           final hora = horaData['hora'] as String;
                           final ocupada = horaData['ocupada'] as bool;
 
-                          return DropdownMenuItem(
+                          return DropdownMenuItem<String>(
                             value: hora,
+                            enabled: !ocupada,
                             child: Text(
                               hora,
                               style: TextStyle(
                                 color: ocupada ? Colors.red : Colors.black,
                                 fontWeight: ocupada ? FontWeight.bold : FontWeight.normal,
+                                decoration: ocupada ? TextDecoration.lineThrough : null,
                               ),
                             ),
                           );
                         }).toList(),
                         onChanged: (value) {
-                          final seleccionada = horasConEstado.firstWhere((h) => h['hora'] == value);
                           controller.setHoraSeleccionada(value);
-
-                          if (seleccionada['ocupada'] == true) {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text("Hora ocupada"),
-                                content: const Text("La hora seleccionada ya está reservada."),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text("Aceptar"),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
                         },
                         validator: (value) {
                           if (value == null) return 'Por favor seleccione una hora';
+                          final sel = horasConEstado.firstWhere(
+                            (h) => h['hora'] == value,
+                            orElse: () => {'ocupada': false},
+                          );
+                          if (sel['ocupada'] == true) {
+                            return 'La hora seleccionada ya está reservada';
+                          }
                           return null;
                         },
                       ),
@@ -196,8 +232,6 @@ class ReservaView extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 20),
-
-              // Política de cambios
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -209,12 +243,12 @@ class ReservaView extends StatelessWidget {
                   children: [
                     Icon(Icons.info_outline, color: Colors.red.shade700),
                     const SizedBox(width: 12),
-                    Expanded(
+                    const Expanded(
                       child: Text(
                         "Si desea cambiar la fecha, debe hacerlo con al menos 1 hora de anticipación para conservar el abono.",
                         style: TextStyle(
                           fontStyle: FontStyle.italic,
-                          color: Colors.red.shade700,
+                          color: Colors.red,
                           fontSize: 13,
                         ),
                       ),
@@ -223,64 +257,99 @@ class ReservaView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // Botón de confirmar
               SizedBox(
                 height: 50,
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    if (controller.formKey.currentState!.validate()) {
-                      if (controller.fechaReserva == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Por favor seleccione una fecha'),
-                            backgroundColor: Colors.orange,
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                        return;
-                      }
+                child: ElevatedButton(
+                  onPressed: _processing
+                      ? null
+                      : () async {
+                          FocusScope.of(context).unfocus();
 
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (context) => const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
+                          if (!controller.formKey.currentState!.validate()) return;
 
-                      final resultado = await controller.confirmarReserva();
-
-                      if (context.mounted) Navigator.pop(context);
-
-                      if (resultado['success']) {
-                        try {
-                          final firestore = FirestoreService();
-                          String canchaNombre = 'Sin cancha';
-                          String precio = '0';
-
-                          if (controller.canchaIdSeleccionada != null) {
-                            final canchaDoc = await firestore
-                                .getCanchasPorSede(controller.sedeIdSeleccionada ?? '');
-                            final cancha = canchaDoc.firstWhere(
-                              (c) => c.id == controller.canchaIdSeleccionada,
-                              orElse: () => canchaDoc.first,
+                          if (controller.fechaReserva == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Por favor seleccione una fecha'),
+                                backgroundColor: Colors.orange,
+                                behavior: SnackBarBehavior.floating,
+                              ),
                             );
-                            canchaNombre = cancha.title;
-                            precio = cancha.price.replaceAll(RegExp(r'[^0-9]'), '');
+                            return;
                           }
 
-                          String sedeNombre = 'Sin sede';
-                          if (controller.sedeIdSeleccionada != null) {
-                            final sedes = await firestore.getSedes();
-                            final sede = sedes.firstWhere(
-                              (s) => s.id == controller.sedeIdSeleccionada,
-                              orElse: () => sedes.first,
-                            );
-                            sedeNombre = sede.title;
+                          setState(() => _processing = true);
+                          _mostrarProcesando(context, mensaje: 'Validando disponibilidad y generando comprobante…');
+
+                          final resultado = await controller.confirmarReserva();
+
+                          if (mounted) {
+                            Navigator.of(context, rootNavigator: true).pop();
                           }
 
-                          if (context.mounted) {
+                          if (!resultado['success']) {
+                            if (mounted) {
+                              setState(() => _processing = false);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(resultado['message']),
+                                  backgroundColor: Colors.red,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                            return;
+                          }
+
+                          try {
+                            final firestore = FirestoreService();
+
+                            String canchaNombre = 'Sin cancha';
+                            String precio = '0';
+                            if (controller.canchaIdSeleccionada != null) {
+                              final canchas = await firestore.getCanchasPorSede(controller.sedeIdSeleccionada ?? '');
+                              final cancha = canchas.firstWhere(
+                                (c) => c.id == controller.canchaIdSeleccionada,
+                                orElse: () => canchas.first,
+                              );
+                              canchaNombre = cancha.title;
+                              precio = cancha.price.replaceAll(RegExp(r'[^0-9]'), '');
+                            }
+
+                            String sedeNombre = 'Sin sede';
+                            if (controller.sedeIdSeleccionada != null) {
+                              final sedes = await firestore.getSedes();
+                              final sede = sedes.firstWhere(
+                                (s) => s.id == controller.sedeIdSeleccionada,
+                                orElse: () => sedes.first,
+                              );
+                              sedeNombre = sede.title;
+                            }
+
+                            () async {
+                              try {
+                                final emailService = EmailService(
+                                  smtpUser: 'reservasports5@gmail.com',
+                                  appPassword: 'zlxnskpuwfutbtzq',
+                                  host: 'smtp.gmail.com',
+                                  port: 587,
+                                );
+
+                                await emailService.enviarCorreosReserva(
+                                  correoUsuario: controller.correoController.text.trim(),
+                                  nombreUsuario: controller.nombreController.text.trim(),
+                                  fechaReserva: controller.fechaReserva!,
+                                  horaReserva: controller.horaSeleccionada!,
+                                  sedeNombre: sedeNombre,
+                                  canchaNombre: canchaNombre,
+                                  precio: precio,
+                                  correoAdmin: 'reservasports5@gmail.com',
+                                );
+                              } catch (_) {}
+                            }();
+
+                            if (!mounted) return;
+
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(resultado['message']),
@@ -300,47 +369,68 @@ class ReservaView extends StatelessWidget {
                               'precio': precio,
                             };
 
-                            Navigator.pushNamed(
-                              context,
-                              AppRoutes.pagos,
-                              arguments: datosReserva,
-                            ).then((_) {
-                              controller.limpiarCamposFormulario();
-                            });
+                            setState(() => _processing = false);
+
+                            if (mounted) {
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.pagos,
+                                arguments: datosReserva,
+                              ).then((_) => controller.limpiarCamposFormulario());
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              setState(() => _processing = false);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Reserva creada pero error al cargar detalles: $e'),
+                                  backgroundColor: Colors.orange,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
                           }
-                        } catch (e) {
-                          print('Error al obtener datos: $e');
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Reserva creada pero error al cargar detalles: $e'),
-                                backgroundColor: Colors.orange,
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          }
-                        }
-                      } else {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(resultado['message']),
-                              backgroundColor: Colors.red,
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        }
-                      }
-                    }
-                  },
-                  icon: const Icon(Icons.check_circle),
-                  label: const Text(
-                    "Confirmar reserva",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    transitionBuilder: (child, anim) => FadeTransition(opacity: anim, child: child),
+                    child: _processing
+                        ? Row(
+                            key: const ValueKey('loading'),
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                "Procesando…",
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                            ],
+                          )
+                        : Row(
+                            key: const ValueKey('label'),
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.check_circle),
+                              SizedBox(width: 8),
+                              Text(
+                                "Confirmar reserva",
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
                   ),
                 ),
               ),
@@ -350,9 +440,9 @@ class ReservaView extends StatelessWidget {
       ),
     );
   }
+
   Future<List<Map<String, dynamic>>> _obtenerHorasConEstado(ReservaController controller) async {
     if (controller.canchaIdSeleccionada == null || controller.fechaReserva == null) {
-      // Todas disponibles
       return controller.horas.map((h) => {'hora': h, 'ocupada': false}).toList();
     }
 
