@@ -172,64 +172,64 @@ class FirestoreService {
     await _db.collection('reservas').doc(reservaId).delete();
   }
 
-  /// ✅ Verificar disponibilidad SIN índice compuesto
-Future<bool> verificarDisponibilidad({
-  required String canchaId,
-  required DateTime fecha,
-  required String horaReserva,
-}) async {
-  try {
-    // Crear timestamps para el inicio y fin del día
-    final inicioDelDia = DateTime(fecha.year, fecha.month, fecha.day);
-    final finDelDia = DateTime(fecha.year, fecha.month, fecha.day, 23, 59, 59);
+  /// Verificar disponibilidad SIN índice compuesto
+  Future<bool> verificarDisponibilidad({
+    required String canchaId,
+    required DateTime fecha,
+    required String horaReserva,
+  }) async {
+    try {
+      // Crear timestamps para el inicio y fin del día
+      final inicioDelDia = DateTime(fecha.year, fecha.month, fecha.day);
+      final finDelDia = DateTime(fecha.year, fecha.month, fecha.day, 23, 59, 59);
 
-    // ✅ Paso 1: Obtener todas las reservas de la cancha (sin filtrar por fecha)
-    final snapshot = await _db
-        .collection('reservas')
-        .where('canchaId', isEqualTo: canchaId)
-        .get();
+      // Paso 1: Obtener todas las reservas de la cancha (sin filtrar por fecha)
+      final snapshot = await _db
+          .collection('reservas')
+          .where('canchaId', isEqualTo: canchaId)
+          .get();
 
-    // ✅ Paso 2: Filtrar manualmente por fecha, hora y estado
-    for (var doc in snapshot.docs) {
-      final data = doc.data();
-      
-      // Extraer datos del documento
-      final Timestamp? fechaTimestamp = data['fechaReserva'];
-      final String? horaDoc = data['horaReserva'];
-      final String? estadoDoc = data['estado'];
+      // Paso 2: Filtrar manualmente por fecha, hora y estado
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        
+        // Extraer datos del documento
+        final Timestamp? fechaTimestamp = data['fechaReserva'];
+        final String? horaDoc = data['horaReserva'];
+        final String? estadoDoc = data['estado'];
 
-      // Verificar si tiene los campos necesarios
-      if (fechaTimestamp == null || horaDoc == null || estadoDoc == null) {
-        continue;
+        // Verificar si tiene los campos necesarios
+        if (fechaTimestamp == null || horaDoc == null || estadoDoc == null) {
+          continue;
+        }
+
+        // Convertir Timestamp a DateTime
+        final fechaDoc = fechaTimestamp.toDate();
+
+        // Verificar si es el mismo día
+        final mismaFecha = fechaDoc.year == fecha.year &&
+                          fechaDoc.month == fecha.month &&
+                          fechaDoc.day == fecha.day;
+
+        // Verificar si la hora y el estado coinciden
+        if (mismaFecha && 
+            horaDoc == horaReserva && 
+            (estadoDoc == 'pendiente' || estadoDoc == 'confirmada' || estadoDoc == 'pagado')) {
+          // Ya existe una reserva para esa fecha y hora
+          return false;
+        }
       }
 
-      // Convertir Timestamp a DateTime
-      final fechaDoc = fechaTimestamp.toDate();
-
-      // Verificar si es el mismo día
-      final mismaFecha = fechaDoc.year == fecha.year &&
-                        fechaDoc.month == fecha.month &&
-                        fechaDoc.day == fecha.day;
-
-      // Verificar si la hora y el estado coinciden
-      if (mismaFecha && 
-          horaDoc == horaReserva && 
-          (estadoDoc == 'pendiente' || estadoDoc == 'confirmada' || estadoDoc == 'pagado')) {
-        // Ya existe una reserva para esa fecha y hora
-        return false;
-      }
+      // No hay conflictos, está disponible
+      return true;
+    } catch (e) {
+      print('❌ Error al verificar disponibilidad: $e');
+      // En caso de error, por seguridad retornamos false
+      return false;
     }
-
-    // No hay conflictos, está disponible
-    return true;
-  } catch (e) {
-    print('❌ Error al verificar disponibilidad: $e');
-    // En caso de error, por seguridad retornamos false
-    return false;
   }
-}
 
-  /// Obtener estadísticas del dashboard
+  /// Obtener estadísticas del dashboard (para Super Admin)
   Future<Map<String, dynamic>> getEstadisticasDashboard() async {
     final reservasSnapshot = await _db.collection('reservas').get();
     final sedesSnapshot = await _db.collection('sedes').get();
@@ -256,38 +256,169 @@ Future<bool> verificarDisponibilidad({
     };
   }
 
-  /// Obtener reservas con información completa (sede y cancha)
-  Future<List<Map<String, dynamic>>> getReservasCompletas() async {
-    final reservasSnapshot = await _db
-        .collection('reservas')
-        .orderBy('createdAt', descending: true)
-        .get();
+  /// ✅ NUEVO: Obtener estadísticas por sede (para Propietarios)
+  Future<Map<String, dynamic>> getEstadisticasPorSede(String sedeId) async {
+    try {
+      final reservasSnapshot = await _db
+          .collection('reservas')
+          .where('sedeId', isEqualTo: sedeId)
+          .get();
 
-    List<Map<String, dynamic>> reservasCompletas = [];
+      final canchasSnapshot = await _db
+          .collection('canchas')
+          .where('sedeId', isEqualTo: sedeId)
+          .get();
 
-    for (var doc in reservasSnapshot.docs) {
-      final reservaData = doc.data();
-      reservaData['id'] = doc.id;
+      int pendientes = 0;
+      int pagadas = 0;
+      int canceladas = 0;
 
-      // Obtener información de la sede
-      if (reservaData['sedeId'] != null) {
-        final sedeDoc = await _db.collection('sedes').doc(reservaData['sedeId']).get();
-        if (sedeDoc.exists) {
-          reservaData['sede'] = sedeDoc.data();
-        }
+      for (var doc in reservasSnapshot.docs) {
+        final estado = doc.data()['estado'] ?? 'pendiente';
+        if (estado == 'pendiente') pendientes++;
+        if (estado == 'pagado') pagadas++;
+        if (estado == 'cancelado') canceladas++;
       }
 
-      // Obtener información de la cancha
-      if (reservaData['canchaId'] != null) {
-        final canchaDoc = await _db.collection('canchas').doc(reservaData['canchaId']).get();
-        if (canchaDoc.exists) {
-          reservaData['cancha'] = canchaDoc.data();
-        }
-      }
-
-      reservasCompletas.add(reservaData);
+      return {
+        'totalReservas': reservasSnapshot.docs.length,
+        'totalCanchas': canchasSnapshot.docs.length,
+        'totalSedes': 1, // Solo una sede para el propietario
+        'reservasPendientes': pendientes,
+        'reservasPagadas': pagadas,
+        'reservasCanceladas': canceladas,
+      };
+    } catch (e) {
+      print('Error en getEstadisticasPorSede: $e');
+      rethrow;
     }
+  }
 
-    return reservasCompletas;
+  /// Obtener reservas con información completa (para Super Admin)
+  Future<List<Map<String, dynamic>>> getReservasCompletas() async {
+    try {
+      final reservasSnapshot = await _db
+          .collection('reservas')
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      List<Map<String, dynamic>> reservasCompletas = [];
+
+      for (var doc in reservasSnapshot.docs) {
+        final reservaData = doc.data();
+        reservaData['id'] = doc.id;
+
+        // Obtener información de la sede con manejo de errores
+        if (reservaData['sedeId'] != null) {
+          try {
+            final sedeDoc = await _db
+                .collection('sedes')
+                .doc(reservaData['sedeId'])
+                .get();
+            
+            if (sedeDoc.exists) {
+              reservaData['sede'] = sedeDoc.data();
+            } else {
+              reservaData['sede'] = {
+                'title': 'Sede no encontrada',
+                'subtitle': '',
+              };
+            }
+          } catch (e) {
+            print('Error al obtener sede: $e');
+            reservaData['sede'] = {
+              'title': 'Sin acceso',
+              'subtitle': '',
+            };
+          }
+        }
+
+        // Obtener información de la cancha con manejo de errores
+        if (reservaData['canchaId'] != null) {
+          try {
+            final canchaDoc = await _db
+                .collection('canchas')
+                .doc(reservaData['canchaId'])
+                .get();
+            
+            if (canchaDoc.exists) {
+              reservaData['cancha'] = canchaDoc.data();
+            } else {
+              reservaData['cancha'] = {
+                'title': 'Cancha no encontrada',
+                'price': '\$0',
+              };
+            }
+          } catch (e) {
+            print('Error al obtener cancha: $e');
+            reservaData['cancha'] = {
+              'title': 'Sin acceso',
+              'price': '\$0',
+            };
+          }
+        }
+
+        reservasCompletas.add(reservaData);
+      }
+
+      return reservasCompletas;
+    } catch (e) {
+      print('Error en getReservasCompletas: $e');
+      rethrow;
+    }
+  }
+
+  /// ✅ NUEVO: Obtener reservas por sede con información completa (para Propietarios)
+  Future<List<Map<String, dynamic>>> getReservasCompletasPorSede(String sedeId) async {
+    try {
+      final reservasSnapshot = await _db
+          .collection('reservas')
+          .where('sedeId', isEqualTo: sedeId)
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      List<Map<String, dynamic>> reservasCompletas = [];
+
+      for (var doc in reservasSnapshot.docs) {
+        final reservaData = doc.data();
+        reservaData['id'] = doc.id;
+
+        // Para reservas de la propia sede, intentar obtener datos
+        if (reservaData['sedeId'] != null) {
+          try {
+            final sedeDoc = await _db
+                .collection('sedes')
+                .doc(reservaData['sedeId'])
+                .get();
+            if (sedeDoc.exists) {
+              reservaData['sede'] = sedeDoc.data();
+            }
+          } catch (e) {
+            print('Error al obtener sede: $e');
+          }
+        }
+
+        if (reservaData['canchaId'] != null) {
+          try {
+            final canchaDoc = await _db
+                .collection('canchas')
+                .doc(reservaData['canchaId'])
+                .get();
+            if (canchaDoc.exists) {
+              reservaData['cancha'] = canchaDoc.data();
+            }
+          } catch (e) {
+            print('Error al obtener cancha: $e');
+          }
+        }
+
+        reservasCompletas.add(reservaData);
+      }
+
+      return reservasCompletas;
+    } catch (e) {
+      print('Error en getReservasCompletasPorSede: $e');
+      rethrow;
+    }
   }
 }
