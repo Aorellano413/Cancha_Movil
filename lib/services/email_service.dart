@@ -87,7 +87,7 @@ class EmailService {
                       <img src="cid:$logoCid" alt="ReservaSports Logo" style="width:120px;height:120px;object-fit:contain;">
                     </td>
                     <td align="right" style="vertical-align:middle;">
-                      <div style="font-size:48px;letter-spacing:1px;font-weight:900;color:$headerDark;margin-bottom:5px;">Factura</div>
+                      <div style="font-size:48px;letter-spacing:1px;font-weight:900;color:$headerDark;margin-bottom:5px;">Reserva</div>
                       <div style="font-size:18px;color:$gray;">ReservaSports</div>
                     </td>
                   </tr>
