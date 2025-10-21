@@ -144,21 +144,7 @@ class _CanchasViewState extends State<CanchasView> {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            child: Image.asset(
-              cancha.image,
-              height: 180,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 180,
-                  color: Colors.grey.shade300,
-                  child: const Center(
-                    child: Icon(Icons.sports_soccer, size: 64, color: Colors.grey),
-                  ),
-                );
-              },
-            ),
+            child: _buildCanchaImage(cancha.image),
           ),
           Padding(
             padding: const EdgeInsets.all(16),
@@ -244,6 +230,49 @@ class _CanchasViewState extends State<CanchasView> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ✅ AGREGAR ESTE MÉTODO AL FINAL DE LA CLASE _CanchasViewState:
+  Widget _buildCanchaImage(String imagePath) {
+    if (imagePath.startsWith('http')) {
+      return Image.network(
+        imagePath,
+        height: 180,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            height: 180,
+            color: Colors.grey.shade300,
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return _placeholderImage();
+        },
+      );
+    }
+    
+    return Image.asset(
+      imagePath,
+      height: 180,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return _placeholderImage();
+      },
+    );
+  }
+
+  Widget _placeholderImage() {
+    return Container(
+      height: 180,
+      color: Colors.grey.shade300,
+      child: const Center(
+        child: Icon(Icons.sports_soccer, size: 64, color: Colors.grey),
       ),
     );
   }

@@ -2,9 +2,11 @@
 import 'package:flutter/material.dart';
 import '../models/cancha_model.dart';
 import '../services/firestore_service.dart';
+import '../services/storage_service.dart';
 
 class CanchasController extends ChangeNotifier {
   final FirestoreService _firestore = FirestoreService();
+  final StorageService _storage = StorageService();
   
   List<CanchaModel> _canchas = [];
   bool _isLoading = false;
@@ -98,6 +100,12 @@ class CanchasController extends ChangeNotifier {
 
   Future<void> eliminarCancha(String canchaId) async {
     try {
+      // ✅ AGREGAR ESTAS LÍNEAS ANTES DE ELIMINAR
+      final cancha = _canchas.firstWhere((c) => c.id == canchaId);
+      if (cancha.image.isNotEmpty && _storage.esUrlFirebase(cancha.image)) {
+        await _storage.eliminarImagen(cancha.image);
+      }
+      
       await _firestore.eliminarCancha(canchaId);
       _canchas.removeWhere((c) => c.id == canchaId);
       notifyListeners();

@@ -247,48 +247,35 @@ class _CanchaCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Imagen
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: Stack(
-              children: [
-                Image.asset(
-                  cancha.image,
-                  height: 180,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 180,
-                      color: Colors.grey.shade300,
-                      child: const Center(
-                        child: Icon(Icons.sports_soccer, size: 64, color: Colors.grey),
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              child: Stack(
+                children: [
+                  // ✅ ACTUALIZAR ESTA PARTE
+                  _buildImage(cancha.image),
+                  // Tipo de cancha tag
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    );
-                  },
-                ),
-                // Tipo de cancha tag
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      _getTipoText(cancha.tipo),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                      child: Text(
+                        _getTipoText(cancha.tipo),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           // Información
           Padding(
             padding: const EdgeInsets.all(16),
@@ -396,5 +383,59 @@ class _CanchaCard extends StatelessWidget {
       case TipoCancha.sintetica:
         return 'Sintética';
     }
+  }
+
+  // ✅ AGREGAR ESTE MÉTODO AL FINAL DE LA CLASE _CanchaCard:
+  Widget _buildImage(String imagePath) {
+    // Si es una URL de Firebase Storage
+    if (imagePath.startsWith('http')) {
+      return Image.network(
+        imagePath,
+        height: 180,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            height: 180,
+            color: Colors.grey.shade300,
+            child: Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            height: 180,
+            color: Colors.grey.shade300,
+            child: const Center(
+              child: Icon(Icons.sports_soccer, size: 64, color: Colors.grey),
+            ),
+          );
+        },
+      );
+    }
+    
+    // Si es un asset local
+    return Image.asset(
+      imagePath,
+      height: 180,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          height: 180,
+          color: Colors.grey.shade300,
+          child: const Center(
+            child: Icon(Icons.sports_soccer, size: 64, color: Colors.grey),
+          ),
+        );
+      },
+    );
   }
 }

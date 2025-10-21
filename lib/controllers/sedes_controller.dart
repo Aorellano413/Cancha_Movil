@@ -2,9 +2,11 @@
 import 'package:flutter/material.dart';
 import '../models/sede_model.dart';
 import '../services/firestore_service.dart';
+import '../services/storage_service.dart';
 
 class SedesController extends ChangeNotifier {
   final FirestoreService _firestore = FirestoreService();
+  final StorageService _storage = StorageService();
   
   List<SedeModel> _todasLasSedes = [];
   String _searchText = "";
@@ -119,6 +121,12 @@ class SedesController extends ChangeNotifier {
             final sedeId = _todasLasSedes[i].id;
             if (sedeId == null) {
               throw Exception('Sede sin ID');
+            }
+            
+            // ✅ AGREGAR ESTAS 4 LÍNEAS
+            final imagePath = _todasLasSedes[i].imagePath;
+            if (imagePath.isNotEmpty && _storage.esUrlFirebase(imagePath)) {
+              await _storage.eliminarImagen(imagePath);
             }
             
             await _firestore.eliminarSede(sedeId);

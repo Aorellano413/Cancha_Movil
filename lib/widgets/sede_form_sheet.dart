@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../controllers/sedes_controller.dart';
 import '../models/sede_model.dart';
 import '../utils/formato_helpers.dart';
+import '../services/storage_service.dart'; // ✅ AGREGADO
 
 class SedeFormSheet extends StatefulWidget {
   final SedeModel? sedeParaEditar;
@@ -30,6 +31,8 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
   final _direccionCtrl = TextEditingController();
   final _precioCtrl = TextEditingController();
   String _pickedPath = '';
+  XFile? _pickedImage; // ✅ AGREGADO
+  bool _isUploading = false; // ✅ AGREGADO
 
   bool get _esEdicion => widget.sedeParaEditar != null;
 
@@ -58,7 +61,10 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
       imageQuality: 85,
     );
     if (imagen != null) {
-      setState(() => _pickedPath = imagen.path);
+      setState(() {
+        _pickedPath = imagen.path;
+        _pickedImage = imagen; // ✅ AGREGADO
+      });
     }
   }
 
@@ -80,19 +86,65 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
       return;
     }
 
-    final precioFormateado = FormatoHelpers.formatearCOP(_precioCtrl.text);
-    final sedeModel = SedeModel(
-      imagePath: _pickedPath,
-      title: "Sede - ${_nombreCtrl.text.trim()}",
-      subtitle: _direccionCtrl.text.trim(),
-      price: precioFormateado,
-      tag: 'Día - Noche',
-      isCustom: true,
-    );
+    // ✅ VALIDACIÓN: Si NO hay imagen seleccionada Y NO es edición, error
+    if (_pickedImage == null && !_esEdicion) {
+      _mostrarError('Debe seleccionar una imagen nueva');
+      return;
+    }
+
+    setState(() => _isUploading = true);
 
     final controller = Provider.of<SedesController>(context, listen: false);
+    final storageService = StorageService();
 
     try {
+      String imageUrl = _pickedPath;
+
+      // ✅ SIEMPRE subir si hay una nueva imagen O si la URL actual no es de Firebase
+      final necesitaSubir = _pickedImage != null || 
+                            !storageService.esUrlFirebase(_pickedPath);
+
+      if (necesitaSubir) {
+        if (_pickedImage == null) {
+          _mostrarError('Debe seleccionar una imagen válida');
+          setState(() => _isUploading = false);
+          return;
+        }
+
+        final sedeId = _esEdicion && widget.sedeParaEditar!.id != null
+            ? widget.sedeParaEditar!.id!
+            : DateTime.now().millisecondsSinceEpoch.toString();
+
+        print('📤 Subiendo imagen a Firebase Storage...');
+
+        imageUrl = await storageService.subirImagenSede(
+          sedeId: sedeId,
+          imageFile: _pickedImage!,
+        );
+
+        print('✅ Imagen subida exitosamente: $imageUrl');
+
+        // ✅ Si es edición y había una imagen anterior de Firebase, eliminarla
+        if (_esEdicion &&
+            widget.sedeParaEditar!.imagePath.isNotEmpty &&
+            storageService.esUrlFirebase(widget.sedeParaEditar!.imagePath)) {
+          print('🗑️ Eliminando imagen anterior...');
+          await storageService.eliminarImagen(widget.sedeParaEditar!.imagePath);
+        }
+      }
+
+      final precioFormateado = FormatoHelpers.formatearCOP(_precioCtrl.text);
+      final sedeModel = SedeModel(
+        imagePath: imageUrl, // ✅ Aquí va la URL de Firebase Storage
+        title: "Sede - ${_nombreCtrl.text.trim()}",
+        subtitle: _direccionCtrl.text.trim(),
+        price: precioFormateado,
+        tag: 'Día - Noche',
+        isCustom: true,
+      );
+
+      print('💾 Guardando en Firestore: ${sedeModel.toJson()}');
+
       if (_esEdicion && widget.editIndex != null) {
         await controller.actualizarSedeCustom(widget.editIndex!, sedeModel);
         if (mounted) {
@@ -107,7 +159,10 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
         }
       }
     } catch (e) {
+      print('❌ Error al guardar: $e');
       _mostrarError('Error al guardar: $e');
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
     }
   }
 
@@ -235,8 +290,10 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
                 icon: Icon(
                   _esEdicion ? Icons.save_outlined : Icons.check_circle_outline,
                 ),
-                label: Text(_esEdicion ? 'Guardar cambios' : 'Crear sede'),
-                onPressed: _guardarSede,
+                label: Text(_isUploading
+                    ? 'Subiendo imagen...'
+                    : (_esEdicion ? 'Guardar cambios' : 'Crear sede')),
+                onPressed: _isUploading ? null : _guardarSede,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0083B0),
                   foregroundColor: Colors.white,

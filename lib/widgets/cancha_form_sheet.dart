@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../controllers/canchas_controller.dart';
 import '../models/cancha_model.dart';
+import '../services/storage_service.dart'; // ✅ AGREGADO
 
 class CanchaFormSheet extends StatefulWidget {
   final String sedeId;
@@ -32,7 +33,9 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
   
   TipoCancha _tipoSeleccionado = TipoCancha.abierta;
   String _pickedPath = '';
+  XFile? _pickedImage; // ✅ AGREGADO
   bool _isLoading = false;
+  bool _isUploading = false; // ✅ AGREGADO
 
   bool get _esEdicion => widget.canchaParaEditar != null;
 
@@ -68,7 +71,10 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
       imageQuality: 85,
     );
     if (imagen != null) {
-      setState(() => _pickedPath = imagen.path);
+      setState(() {
+        _pickedPath = imagen.path;
+        _pickedImage = imagen; // ✅ AGREGADO
+      });
     }
   }
 
@@ -90,15 +96,66 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    // ✅ VALIDACIÓN: Si NO hay imagen seleccionada Y NO es edición, error
+    if (_pickedImage == null && !_esEdicion) {
+      _mostrarError('Debe seleccionar una imagen nueva');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _isUploading = true;
+    });
+
+    final controller = Provider.of<CanchasController>(context, listen: false);
+    final storageService = StorageService();
 
     try {
+      String imageUrl = _pickedPath;
+
+      // ✅ SIEMPRE subir si hay una nueva imagen O si la URL actual no es de Firebase
+      final necesitaSubir = _pickedImage != null || 
+                            !storageService.esUrlFirebase(_pickedPath);
+
+      if (necesitaSubir) {
+        // Si no hay imagen nueva pero necesitamos subir, mostrar error
+        if (_pickedImage == null) {
+          _mostrarError('Debe seleccionar una imagen válida');
+          setState(() {
+            _isLoading = false;
+            _isUploading = false;
+          });
+          return;
+        }
+
+        final canchaId = _esEdicion && widget.canchaParaEditar!.id != null
+            ? widget.canchaParaEditar!.id!
+            : DateTime.now().millisecondsSinceEpoch.toString();
+
+        print('📤 Subiendo imagen a Firebase Storage...');
+        
+        imageUrl = await storageService.subirImagenCancha(
+          canchaId: canchaId,
+          imageFile: _pickedImage!,
+        );
+
+        print('✅ Imagen subida exitosamente: $imageUrl');
+
+        // ✅ Si es edición y había una imagen anterior de Firebase, eliminarla
+        if (_esEdicion &&
+            widget.canchaParaEditar!.image.isNotEmpty &&
+            storageService.esUrlFirebase(widget.canchaParaEditar!.image)) {
+          print('🗑️ Eliminando imagen anterior...');
+          await storageService.eliminarImagen(widget.canchaParaEditar!.image);
+        }
+      }
+
       final precioFormateado = '\$${_precioCtrl.text.trim()} COP';
       
       final canchaModel = CanchaModel(
         id: _esEdicion ? widget.canchaParaEditar!.id : null,
         sedeId: widget.sedeId,
-        image: _pickedPath,
+        image: imageUrl, // ✅ Aquí va la URL de Firebase Storage
         title: _nombreCtrl.text.trim(),
         price: precioFormateado,
         horario: _horarioCtrl.text.trim(),
@@ -106,7 +163,7 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
         jugadores: _jugadoresCtrl.text.trim(),
       );
 
-      final controller = Provider.of<CanchasController>(context, listen: false);
+      print('💾 Guardando en Firestore: ${canchaModel.toJson()}');
 
       if (_esEdicion && widget.canchaParaEditar!.id != null) {
         await controller.actualizarCancha(
@@ -121,9 +178,15 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
         widget.onGuardado();
       }
     } catch (e) {
+      print('❌ Error al guardar: $e');
       _mostrarError('Error al guardar: $e');
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isUploading = false;
+        });
+      }
     }
   }
 
@@ -335,7 +398,9 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
                       )
                     : Icon(_esEdicion ? Icons.save : Icons.check_circle),
                 label: Text(
-                  _esEdicion ? 'Guardar Cambios' : 'Crear Cancha',
+                  _isUploading
+                      ? 'Subiendo imagen...'
+                      : (_esEdicion ? 'Guardar Cambios' : 'Crear Cancha'),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
