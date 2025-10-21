@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import '../controllers/sedes_controller.dart';
 import '../models/sede_model.dart';
 import '../utils/formato_helpers.dart';
-import '../services/storage_service.dart'; // ✅ AGREGADO
+import '../services/storage_service.dart';
 
 class SedeFormSheet extends StatefulWidget {
   final SedeModel? sedeParaEditar;
@@ -31,8 +31,8 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
   final _direccionCtrl = TextEditingController();
   final _precioCtrl = TextEditingController();
   String _pickedPath = '';
-  XFile? _pickedImage; // ✅ AGREGADO
-  bool _isUploading = false; // ✅ AGREGADO
+  XFile? _pickedImage;
+  bool _isUploading = false;
 
   bool get _esEdicion => widget.sedeParaEditar != null;
 
@@ -63,19 +63,94 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
     if (imagen != null) {
       setState(() {
         _pickedPath = imagen.path;
-        _pickedImage = imagen; // ✅ AGREGADO
+        _pickedImage = imagen;
       });
     }
   }
 
-  ImageProvider _obtenerImageProvider(String path) {
-    if (kIsWeb && (path.startsWith('blob:') || path.startsWith('http'))) {
-      return NetworkImage(path);
-    } else if (path.startsWith('/') || path.contains(':\\')) {
-      return FileImage(File(path));
-    } else {
-      return AssetImage(path);
+  // ✅ MÉTODO CORREGIDO: Mostrar preview según tipo de imagen
+  Widget _buildImagePreview() {
+    if (_pickedPath.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.add_a_photo_outlined,
+              size: 30,
+              color: Colors.black54,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Subir imagen de la sede',
+              style: TextStyle(color: Colors.black54),
+            ),
+          ],
+        ),
+      );
     }
+
+    // Si hay una imagen nueva seleccionada (blob en web o path en móvil)
+    if (_pickedImage != null) {
+      if (kIsWeb) {
+        // En web, usar Image.network con la URL blob
+        return Image.network(
+          _pickedPath,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: Colors.grey.shade300,
+              child: const Icon(Icons.error, size: 64, color: Colors.red),
+            );
+          },
+        );
+      } else {
+        // En móvil, usar Image.file
+        return Image.file(
+          File(_pickedPath),
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: Colors.grey.shade300,
+              child: const Icon(Icons.error, size: 64, color: Colors.red),
+            );
+          },
+        );
+      }
+    }
+
+    // Si es una URL de Firebase (ya guardada)
+    if (_pickedPath.startsWith('http://') || _pickedPath.startsWith('https://')) {
+      return Image.network(
+        _pickedPath,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            color: Colors.grey.shade200,
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey.shade300,
+            child: const Icon(Icons.error, size: 64, color: Colors.red),
+          );
+        },
+      );
+    }
+
+    // Si es un asset local
+    return Image.asset(
+      _pickedPath,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: Colors.grey.shade300,
+          child: const Icon(Icons.error, size: 64, color: Colors.red),
+        );
+      },
+    );
   }
 
   Future<void> _guardarSede() async {
@@ -86,7 +161,6 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
       return;
     }
 
-    // ✅ VALIDACIÓN: Si NO hay imagen seleccionada Y NO es edición, error
     if (_pickedImage == null && !_esEdicion) {
       _mostrarError('Debe seleccionar una imagen nueva');
       return;
@@ -100,7 +174,6 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
     try {
       String imageUrl = _pickedPath;
 
-      // ✅ SIEMPRE subir si hay una nueva imagen O si la URL actual no es de Firebase
       final necesitaSubir = _pickedImage != null || 
                             !storageService.esUrlFirebase(_pickedPath);
 
@@ -124,7 +197,6 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
 
         print('✅ Imagen subida exitosamente: $imageUrl');
 
-        // ✅ Si es edición y había una imagen anterior de Firebase, eliminarla
         if (_esEdicion &&
             widget.sedeParaEditar!.imagePath.isNotEmpty &&
             storageService.esUrlFirebase(widget.sedeParaEditar!.imagePath)) {
@@ -135,7 +207,7 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
 
       final precioFormateado = FormatoHelpers.formatearCOP(_precioCtrl.text);
       final sedeModel = SedeModel(
-        imagePath: imageUrl, // ✅ Aquí va la URL de Firebase Storage
+        imagePath: imageUrl,
         title: "Sede - ${_nombreCtrl.text.trim()}",
         subtitle: _direccionCtrl.text.trim(),
         price: precioFormateado,
@@ -215,32 +287,11 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
                   borderRadius: BorderRadius.circular(16),
                   color: const Color(0xFFF2F4F7),
                   border: Border.all(color: const Color(0xFFE0E3E7)),
-                  image: _pickedPath.isEmpty
-                      ? null
-                      : DecorationImage(
-                          image: _obtenerImageProvider(_pickedPath),
-                          fit: BoxFit.cover,
-                        ),
                 ),
-                child: _pickedPath.isEmpty
-                    ? const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.add_a_photo_outlined,
-                              size: 30,
-                              color: Colors.black54,
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Subir imagen de la sede',
-                              style: TextStyle(color: Colors.black54),
-                            ),
-                          ],
-                        ),
-                      )
-                    : null,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: _buildImagePreview(),
+                ),
               ),
             ),
             const SizedBox(height: 12),

@@ -1,6 +1,5 @@
 // lib/widgets/sede_card.dart
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/sede_model.dart';
@@ -17,16 +16,61 @@ class SedeCard extends StatelessWidget {
     required this.onEliminar,
   });
 
-  ImageProvider _obtenerImageProvider() {
-    if (kIsWeb && (sede.imagePath.startsWith('blob:') || 
-        sede.imagePath.startsWith('http'))) {
-      return NetworkImage(sede.imagePath);
-    } else if (sede.imagePath.startsWith('/') || 
-        sede.imagePath.contains(':\\')) {
-      return FileImage(File(sede.imagePath));
-    } else {
-      return AssetImage(sede.imagePath);
+  Widget _buildImage() {
+    // Si es una URL de Firebase Storage (http/https)
+    if (sede.imagePath.startsWith('http://') || sede.imagePath.startsWith('https://')) {
+      return Image.network(
+        sede.imagePath,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey.shade300,
+            child: const Icon(Icons.stadium, size: 64, color: Colors.grey),
+          );
+        },
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            color: Colors.grey.shade200,
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        },
+      );
     }
+    
+    // Si es un asset local
+    if (!sede.imagePath.startsWith('/') && !sede.imagePath.contains(':\\')) {
+      return Image.asset(
+        sede.imagePath,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey.shade300,
+            child: const Icon(Icons.stadium, size: 64, color: Colors.grey),
+          );
+        },
+      );
+    }
+    
+    // Si es una ruta de archivo (móvil)
+    if (!kIsWeb) {
+      return Image.file(
+        File(sede.imagePath),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey.shade300,
+            child: const Icon(Icons.stadium, size: 64, color: Colors.grey),
+          );
+        },
+      );
+    }
+    
+    // Fallback
+    return Container(
+      color: Colors.grey.shade300,
+      child: const Icon(Icons.stadium, size: 64, color: Colors.grey),
+    );
   }
 
   @override
@@ -42,23 +86,19 @@ class SedeCard extends StatelessWidget {
             offset: const Offset(0, 6),
           ),
         ],
-        image: DecorationImage(
-          image: _obtenerImageProvider(),
-          fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(
-            const Color(0xFF0083B0).withOpacity(0.35),
-            BlendMode.darken,
-          ),
-        ),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(22),
         child: Stack(
           children: [
+            // ✅ Imagen como widget en lugar de DecorationImage
             Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-                child: const SizedBox.shrink(),
+              child: ColorFiltered(
+                colorFilter: ColorFilter.mode(
+                  const Color(0xFF0083B0).withOpacity(0.35),
+                  BlendMode.darken,
+                ),
+                child: _buildImage(),
               ),
             ),
             Positioned(

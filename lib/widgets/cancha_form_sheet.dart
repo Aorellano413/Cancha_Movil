@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../controllers/canchas_controller.dart';
 import '../models/cancha_model.dart';
-import '../services/storage_service.dart'; // ✅ AGREGADO
+import '../services/storage_service.dart';
 
 class CanchaFormSheet extends StatefulWidget {
   final String sedeId;
@@ -33,9 +33,9 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
   
   TipoCancha _tipoSeleccionado = TipoCancha.abierta;
   String _pickedPath = '';
-  XFile? _pickedImage; // ✅ AGREGADO
+  XFile? _pickedImage;
   bool _isLoading = false;
-  bool _isUploading = false; // ✅ AGREGADO
+  bool _isUploading = false;
 
   bool get _esEdicion => widget.canchaParaEditar != null;
 
@@ -50,7 +50,6 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
       _tipoSeleccionado = widget.canchaParaEditar!.tipo;
       _pickedPath = widget.canchaParaEditar!.image;
     } else {
-      // Valores por defecto
       _horarioCtrl.text = '7:00 AM - 11:00 PM';
       _jugadoresCtrl.text = '5 vs 5';
     }
@@ -73,19 +72,92 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
     if (imagen != null) {
       setState(() {
         _pickedPath = imagen.path;
-        _pickedImage = imagen; // ✅ AGREGADO
+        _pickedImage = imagen;
       });
     }
   }
 
-  ImageProvider _obtenerImageProvider(String path) {
-    if (kIsWeb && (path.startsWith('blob:') || path.startsWith('http'))) {
-      return NetworkImage(path);
-    } else if (path.startsWith('/') || path.contains(':\\')) {
-      return FileImage(File(path));
-    } else {
-      return AssetImage(path);
+  // ✅ MÉTODO CORREGIDO: Preview de imagen
+  Widget _buildImagePreview() {
+    if (_pickedPath.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.add_photo_alternate_outlined,
+              size: 40,
+              color: Colors.black54,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Subir imagen de la cancha',
+              style: TextStyle(color: Colors.black54),
+            ),
+          ],
+        ),
+      );
     }
+
+    // Si hay una imagen nueva seleccionada
+    if (_pickedImage != null) {
+      if (kIsWeb) {
+        return Image.network(
+          _pickedPath,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: Colors.grey.shade300,
+              child: const Icon(Icons.error, size: 64, color: Colors.red),
+            );
+          },
+        );
+      } else {
+        return Image.file(
+          File(_pickedPath),
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: Colors.grey.shade300,
+              child: const Icon(Icons.error, size: 64, color: Colors.red),
+            );
+          },
+        );
+      }
+    }
+
+    // Si es una URL de Firebase
+    if (_pickedPath.startsWith('http://') || _pickedPath.startsWith('https://')) {
+      return Image.network(
+        _pickedPath,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            color: Colors.grey.shade200,
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey.shade300,
+            child: const Icon(Icons.error, size: 64, color: Colors.red),
+          );
+        },
+      );
+    }
+
+    // Asset local
+    return Image.asset(
+      _pickedPath,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: Colors.grey.shade300,
+          child: const Icon(Icons.error, size: 64, color: Colors.red),
+        );
+      },
+    );
   }
 
   Future<void> _guardar() async {
@@ -96,7 +168,6 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
       return;
     }
 
-    // ✅ VALIDACIÓN: Si NO hay imagen seleccionada Y NO es edición, error
     if (_pickedImage == null && !_esEdicion) {
       _mostrarError('Debe seleccionar una imagen nueva');
       return;
@@ -113,12 +184,10 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
     try {
       String imageUrl = _pickedPath;
 
-      // ✅ SIEMPRE subir si hay una nueva imagen O si la URL actual no es de Firebase
       final necesitaSubir = _pickedImage != null || 
                             !storageService.esUrlFirebase(_pickedPath);
 
       if (necesitaSubir) {
-        // Si no hay imagen nueva pero necesitamos subir, mostrar error
         if (_pickedImage == null) {
           _mostrarError('Debe seleccionar una imagen válida');
           setState(() {
@@ -141,7 +210,6 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
 
         print('✅ Imagen subida exitosamente: $imageUrl');
 
-        // ✅ Si es edición y había una imagen anterior de Firebase, eliminarla
         if (_esEdicion &&
             widget.canchaParaEditar!.image.isNotEmpty &&
             storageService.esUrlFirebase(widget.canchaParaEditar!.image)) {
@@ -155,7 +223,7 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
       final canchaModel = CanchaModel(
         id: _esEdicion ? widget.canchaParaEditar!.id : null,
         sedeId: widget.sedeId,
-        image: imageUrl, // ✅ Aquí va la URL de Firebase Storage
+        image: imageUrl,
         title: _nombreCtrl.text.trim(),
         price: precioFormateado,
         horario: _horarioCtrl.text.trim(),
@@ -241,32 +309,11 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
                   borderRadius: BorderRadius.circular(16),
                   color: const Color(0xFFF2F4F7),
                   border: Border.all(color: const Color(0xFFE0E3E7)),
-                  image: _pickedPath.isEmpty
-                      ? null
-                      : DecorationImage(
-                          image: _obtenerImageProvider(_pickedPath),
-                          fit: BoxFit.cover,
-                        ),
                 ),
-                child: _pickedPath.isEmpty
-                    ? const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.add_photo_alternate_outlined,
-                              size: 40,
-                              color: Colors.black54,
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Subir imagen de la cancha',
-                              style: TextStyle(color: Colors.black54),
-                            ),
-                          ],
-                        ),
-                      )
-                    : null,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: _buildImagePreview(),
+                ),
               ),
             ),
             const SizedBox(height: 16),

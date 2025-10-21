@@ -17,19 +17,30 @@ class SedesView extends StatefulWidget {
 class _SedesViewState extends State<SedesView> {
   String _query = '';
 
-  Widget _imageFor(String path) {
-    // URLs (web o network)
-    if (path.startsWith('blob:') || path.startsWith('http')) {
+  // ✅ MÉTODO CORREGIDO: Usar widgets en lugar de ImageProvider
+  Widget _buildSedeImage(String path) {
+    // URLs de Firebase Storage o cualquier URL HTTP/HTTPS
+    if (path.startsWith('http://') || path.startsWith('https://')) {
       return Image.network(
         path,
         height: 180,
         width: double.infinity,
         fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            height: 180,
+            color: Colors.grey.shade200,
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        },
         errorBuilder: (context, error, stackTrace) {
           return _placeholderImage();
         },
       );
     }
+
+    // Si es una ruta de archivo (móvil)
     if (!kIsWeb && (path.startsWith('/') || path.contains(':\\'))) {
       return Image.file(
         File(path),
@@ -41,7 +52,8 @@ class _SedesViewState extends State<SedesView> {
         },
       );
     }
-    // Assets
+
+    // Assets locales (lib/images/...)
     return Image.asset(
       path,
       height: 180,
@@ -198,7 +210,7 @@ class _SedesViewState extends State<SedesView> {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                  child: _imageFor(sede.imagePath),
+                  child: _buildSedeImage(sede.imagePath),
                 ),
                 Positioned(
                   top: 12,
