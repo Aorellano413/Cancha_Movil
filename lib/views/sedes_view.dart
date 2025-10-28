@@ -17,9 +17,7 @@ class SedesView extends StatefulWidget {
 class _SedesViewState extends State<SedesView> {
   String _query = '';
 
-  // ✅ MÉTODO CORREGIDO: Usar widgets en lugar de ImageProvider
   Widget _buildSedeImage(String path) {
-    // URLs de Firebase Storage o cualquier URL HTTP/HTTPS
     if (path.startsWith('http://') || path.startsWith('https://')) {
       return Image.network(
         path,
@@ -40,7 +38,6 @@ class _SedesViewState extends State<SedesView> {
       );
     }
 
-    // Si es una ruta de archivo (móvil)
     if (!kIsWeb && (path.startsWith('/') || path.contains(':\\'))) {
       return Image.file(
         File(path),
@@ -53,7 +50,6 @@ class _SedesViewState extends State<SedesView> {
       );
     }
 
-    // Assets locales (lib/images/...)
     return Image.asset(
       path,
       height: 180,
@@ -75,14 +71,22 @@ class _SedesViewState extends State<SedesView> {
     );
   }
 
+  String _formatearDistancia(double km) {
+    if (km < 1) {
+      return '${(km * 1000).toStringAsFixed(0)} m';
+    } else {
+      return '${km.toStringAsFixed(1)} km';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final sedesController = Provider.of<SedesController>(context);
 
-    final sedesFiltradas = sedesController.sedes
-        .where((sede) =>
-            sede.title.toLowerCase().contains(_query.toLowerCase()) ||
-            sede.subtitle.toLowerCase().contains(_query.toLowerCase()))
+    final sedesFiltradas = sedesController.sedesConDistancia
+        .where((sedeConDist) =>
+            sedeConDist.sede.title.toLowerCase().contains(_query.toLowerCase()) ||
+            sedeConDist.sede.subtitle.toLowerCase().contains(_query.toLowerCase()))
         .toList();
 
     return Scaffold(
@@ -90,6 +94,42 @@ class _SedesViewState extends State<SedesView> {
         title: const Text('Sedes disponibles'),
         centerTitle: true,
         actions: [
+          Consumer<SedesController>(
+            builder: (context, controller, _) {
+              if (controller.ordenarPorDistancia) {
+                return IconButton(
+                  icon: const Icon(Icons.clear_all),
+                  tooltip: 'Ver todas las sedes',
+                  onPressed: () => controller.resetearOrden(),
+                );
+              } else {
+                return IconButton(
+                  icon: const Icon(Icons.my_location),
+                  tooltip: 'Buscar cerca de mí',
+                  onPressed: () async {
+                    await controller.buscarSedesCercanas();
+                    
+                    if (controller.error != null && mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(controller.error!),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    } else if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('✓ Sedes ordenadas por distancia'),
+                          backgroundColor: Colors.green,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                );
+              }
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => sedesController.cargarSedes(),
@@ -97,9 +137,22 @@ class _SedesViewState extends State<SedesView> {
           ),
         ],
       ),
-      body: sedesController.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : sedesController.error != null
+      body: sedesController.isLoading || sedesController.buscandoUbicacion
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(
+                    sedesController.buscandoUbicacion
+                        ? 'Buscando sedes cercanas...'
+                        : 'Cargando sedes...',
+                  ),
+                ],
+              ),
+            )
+          : sedesController.error != null && sedesController.sedesConDistancia.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -146,7 +199,40 @@ class _SedesViewState extends State<SedesView> {
                         ),
                         onChanged: (value) => setState(() => _query = value),
                       ),
+                      
+                      if (sedesController.ordenarPorDistancia)
+                        Container(
+                          margin: const EdgeInsets.only(top: 16, bottom: 8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.blue.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.near_me, color: Colors.blue.shade700, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Mostrando sedes más cercanas primero',
+                                  style: TextStyle(
+                                    color: Colors.blue.shade700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close, size: 18),
+                                onPressed: () => sedesController.resetearOrden(),
+                                tooltip: 'Quitar filtro',
+                              ),
+                            ],
+                          ),
+                        ),
+                      
                       const SizedBox(height: 20),
+                      
                       if (sedesFiltradas.isEmpty)
                         Center(
                           child: Padding(
@@ -169,14 +255,16 @@ class _SedesViewState extends State<SedesView> {
                           ),
                         )
                       else
-                        ...sedesFiltradas.map((sede) => _buildSedeCard(context, sede)),
+                        ...sedesFiltradas.map((sedeConDist) => 
+                          _buildSedeCard(context, sedeConDist.sede, sedeConDist.distanciaKm)
+                        ),
                     ],
                   ),
                 ),
     );
   }
 
-  Widget _buildSedeCard(BuildContext context, SedeModel sede) {
+  Widget _buildSedeCard(BuildContext context, SedeModel sede, double? distanciaKm) {
     return Card(
       margin: const EdgeInsets.only(bottom: 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -212,6 +300,7 @@ class _SedesViewState extends State<SedesView> {
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                   child: _buildSedeImage(sede.imagePath),
                 ),
+                
                 Positioned(
                   top: 12,
                   right: 12,
@@ -238,6 +327,45 @@ class _SedesViewState extends State<SedesView> {
                     ),
                   ),
                 ),
+                
+                if (distanciaKm != null)
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade700,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.location_on,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatearDistancia(distanciaKm),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
             Padding(
@@ -264,6 +392,8 @@ class _SedesViewState extends State<SedesView> {
                             color: Colors.grey.shade600,
                             fontSize: 14,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],

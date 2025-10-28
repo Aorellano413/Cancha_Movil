@@ -1,13 +1,15 @@
-// ============= lib/models/sede_model.dart =============
+// lib/models/sede_model.dart
 class SedeModel {
   final String? id; 
   final String imagePath;
   final String title;
-  final String subtitle;
+  final String subtitle; // Esta es la dirección
   final String price;
   final String tag;
   final String? description;
   final bool isCustom;
+  final double? latitud;  // ⭐ NUEVO
+  final double? longitud; // ⭐ NUEVO
 
   SedeModel({
     this.id,
@@ -18,6 +20,8 @@ class SedeModel {
     required this.tag,
     this.description,
     this.isCustom = false,
+    this.latitud,  // ⭐ NUEVO
+    this.longitud, // ⭐ NUEVO
   });
 
   factory SedeModel.fromJson(Map<String, dynamic> json) {
@@ -30,6 +34,8 @@ class SedeModel {
       tag: (json['tag'] ?? '') as String,
       description: json['description'] == null ? null : json['description'] as String,
       isCustom: (json['isCustom'] ?? false) as bool,
+      latitud: json['latitud']?.toDouble(),  // ⭐ NUEVO
+      longitud: json['longitud']?.toDouble(), // ⭐ NUEVO
     );
   }
 
@@ -42,6 +48,8 @@ class SedeModel {
         'tag': tag,
         if (description != null) 'description': description,
         'isCustom': isCustom,
+        if (latitud != null) 'latitud': latitud,   // ⭐ NUEVO
+        if (longitud != null) 'longitud': longitud, // ⭐ NUEVO
       };
 
   SedeModel copyWith({
@@ -53,6 +61,8 @@ class SedeModel {
     String? tag,
     String? description,
     bool? isCustom,
+    double? latitud,  // ⭐ NUEVO
+    double? longitud, // ⭐ NUEVO
   }) {
     return SedeModel(
       id: id ?? this.id,
@@ -63,6 +73,13 @@ class SedeModel {
       tag: tag ?? this.tag,
       description: description ?? this.description,
       isCustom: isCustom ?? this.isCustom,
+      latitud: latitud ?? this.latitud,   // ⭐ NUEVO
+      longitud: longitud ?? this.longitud, // ⭐ NUEVO
     );
+  }
+
+  // ⭐ NUEVO MÉTODO
+  bool tieneCoordenadasValidas() {
+    return latitud != null && longitud != null;
   }
 }
