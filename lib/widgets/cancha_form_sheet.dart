@@ -77,7 +77,6 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
     }
   }
 
-  // ✅ MÉTODO CORREGIDO: Preview de imagen
   Widget _buildImagePreview() {
     if (_pickedPath.isEmpty) {
       return const Center(
@@ -99,7 +98,6 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
       );
     }
 
-    // Si hay una imagen nueva seleccionada
     if (_pickedImage != null) {
       if (kIsWeb) {
         return Image.network(
@@ -126,7 +124,6 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
       }
     }
 
-    // Si es una URL de Firebase
     if (_pickedPath.startsWith('http://') || _pickedPath.startsWith('https://')) {
       return Image.network(
         _pickedPath,
@@ -147,7 +144,6 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
       );
     }
 
-    // Asset local
     return Image.asset(
       _pickedPath,
       fit: BoxFit.cover,
@@ -297,9 +293,7 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
               _esEdicion ? 'Editar Cancha' : 'Crear Nueva Cancha',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
             ),
-            const SizedBox(height: 12),
-
-            // Imagen
+  
             GestureDetector(
               onTap: _seleccionarImagen,
               child: Container(
@@ -318,7 +312,6 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
             ),
             const SizedBox(height: 16),
 
-            // Nombre
             TextFormField(
               controller: _nombreCtrl,
               decoration: const InputDecoration(
@@ -332,7 +325,6 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
             ),
             const SizedBox(height: 12),
 
-            // Tipo de cancha
             DropdownButtonFormField<TipoCancha>(
               value: _tipoSeleccionado,
               decoration: const InputDecoration(
@@ -422,7 +414,6 @@ class _CanchaFormSheetState extends State<CanchaFormSheet> {
             ),
             const SizedBox(height: 20),
 
-            // Botón guardar
             SizedBox(
               height: 50,
               child: ElevatedButton.icon(

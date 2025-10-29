@@ -305,7 +305,6 @@ Widget _buildGraficaReservasPorSede() {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      // Header (nuevo título)
       Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -348,7 +347,6 @@ Widget _buildGraficaReservasPorSede() {
 
       const SizedBox(height: 20),
 
-      // Tarjeta con el PieChart (SIN leyenda inferior)
       Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
@@ -381,7 +379,6 @@ Widget _buildGraficaReservasPorSede() {
                       ),
                     ),
                   ),
-                  // Centro con total
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [

@@ -7,7 +7,6 @@ class PopulateFirestore {
   static Future<void> poblarDatosIniciales() async {
     print('🔄 Iniciando población de datos...');
 
-    // Verificar si ya hay datos
     final sedesSnapshot = await _db.collection('sedes').limit(1).get();
     if (sedesSnapshot.docs.isNotEmpty) {
       print('✅ Ya existen datos en la base de datos');
@@ -16,10 +15,9 @@ class PopulateFirestore {
     }
 
     try {
-      // Crear sedes
+      
       final sedes = await _crearSedes();
       
-      // Crear canchas para cada sede
       await _crearCanchas(sedes);
 
       print('✅ Datos iniciales poblados exitosamente!');
@@ -35,17 +33,13 @@ class PopulateFirestore {
 
     print('📍 Creando sedes...');
 
-    // ⚠️ CAMBIO: Ahora todas las sedes tienen isCustom: true
-    // para que aparezcan en el dashboard del admin
-
-    // Sede La Jugada Principal
     final jugadaRef = await _db.collection('sedes').add({
       'imagePath': 'lib/images/jugada.jpg',
       'title': 'Sede - La Jugada Principal',
       'subtitle': 'Mayales, Valledupar',
       'price': '\$80.000',
       'tag': 'Día - Noche',
-      'isCustom': true, // ✅ CAMBIADO de false a true
+      'isCustom': true, 
     });
     sedesIds['jugada'] = jugadaRef.id;
     print('  ✓ La Jugada Principal');
@@ -57,7 +51,7 @@ class PopulateFirestore {
       'subtitle': 'Mayales, Valledupar',
       'price': '\$70.000',
       'tag': 'Día - Noche',
-      'isCustom': true, // ✅ CAMBIADO de false a true
+      'isCustom': true, 
     });
     sedesIds['jugada2'] = jugada2Ref.id;
     print('  ✓ La Jugada Secundaria');
@@ -69,7 +63,7 @@ class PopulateFirestore {
       'subtitle': 'Sabanas, Valledupar',
       'price': '\$70.000',
       'tag': 'Día - Noche',
-      'isCustom': true, // ✅ CAMBIADO de false a true
+      'isCustom': true, 
     });
     sedesIds['biblos'] = biblosRef.id;
     print('  ✓ Biblos');
@@ -81,7 +75,7 @@ class PopulateFirestore {
       'subtitle': 'Cra 9 #14A-22, Valledupar',
       'price': '\$80.000',
       'tag': 'Día - Noche',
-      'isCustom': true, // ✅ CAMBIADO de false a true
+      'isCustom': true, 
     });
     sedesIds['fortin'] = fortinRef.id;
     print('  ✓ El Fortín');
@@ -94,7 +88,6 @@ class PopulateFirestore {
     print('⚽ Creando canchas...');
     int totalCanchas = 0;
 
-    // Canchas La Jugada Principal
     print('  📍 La Jugada Principal:');
     await _db.collection('canchas').add({
       'sedeId': sedesIds['jugada'],
@@ -120,7 +113,6 @@ class PopulateFirestore {
     print('    ✓ Cancha Abierta');
     totalCanchas++;
 
-    // Canchas La Jugada Secundaria
     print('  📍 La Jugada Secundaria:');
     await _db.collection('canchas').add({
       'sedeId': sedesIds['jugada2'],
@@ -237,13 +229,11 @@ class PopulateFirestore {
     print('✅ $totalCanchas canchas creadas');
   }
 
-  /// Método para limpiar toda la base de datos (usar con cuidado)
   static Future<void> limpiarBaseDatos() async {
     print('⚠️  ADVERTENCIA: Limpiando toda la base de datos...');
     
     int totalEliminados = 0;
 
-    // Eliminar todas las reservas
     print('🗑️  Eliminando reservas...');
     final reservas = await _db.collection('reservas').get();
     for (var doc in reservas.docs) {
@@ -252,7 +242,6 @@ class PopulateFirestore {
     }
     print('  ✓ ${reservas.docs.length} reservas eliminadas');
 
-    // Eliminar todas las canchas
     print('🗑️  Eliminando canchas...');
     final canchas = await _db.collection('canchas').get();
     for (var doc in canchas.docs) {
@@ -261,7 +250,6 @@ class PopulateFirestore {
     }
     print('  ✓ ${canchas.docs.length} canchas eliminadas');
 
-    // Eliminar todas las sedes
     print('🗑️  Eliminando sedes...');
     final sedes = await _db.collection('sedes').get();
     for (var doc in sedes.docs) {
@@ -274,10 +262,8 @@ class PopulateFirestore {
     print('📊 Total documentos eliminados: $totalEliminados');
   }
 
-  /// Crear reservas de ejemplo para testing
   static Future<void> crearReservasEjemplo() async {
     print('📅 Creando reservas de ejemplo...');
-
     // Obtener una cancha para las reservas
     final canchasSnapshot = await _db.collection('canchas').limit(1).get();
     if (canchasSnapshot.docs.isEmpty) {
@@ -290,7 +276,6 @@ class PopulateFirestore {
     final canchaId = cancha.id;
     final sedeId = canchaData['sedeId'];
 
-    // Crear 3 reservas de ejemplo
     final reservas = [
       {
         'nombreCompleto': 'Adel Andrés Orellano',
@@ -338,7 +323,6 @@ class PopulateFirestore {
     print('✅ ${reservas.length} reservas de ejemplo creadas');
   }
 
-  /// Obtener estadísticas de la base de datos
   static Future<void> mostrarEstadisticas() async {
     print('📊 Estadísticas de la base de datos:');
     print('════════════════════════════════════');

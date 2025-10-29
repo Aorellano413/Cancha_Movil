@@ -95,7 +95,6 @@ class ReservaController extends ChangeNotifier {
     }
 
     try {
-      // Verificar disponibilidad
       final disponible = await _firestore.verificarDisponibilidad(
         canchaId: _canchaIdSeleccionada!,
         fecha: _fechaReserva!,
@@ -109,7 +108,7 @@ class ReservaController extends ChangeNotifier {
         };
       }
 
-      // Crear reserva
+      
       final reservaId = await _firestore.crearReserva(
         reserva,
         _canchaIdSeleccionada!,
@@ -132,7 +131,6 @@ class ReservaController extends ChangeNotifier {
     }
   }
 
-  /// ✅ Limpiar solo los campos del formulario (mantiene sede y cancha)
   void limpiarCamposFormulario() {
     nombreController.clear();
     correoController.clear();
@@ -142,7 +140,6 @@ class ReservaController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Limpiar todo el formulario (incluyendo sede y cancha)
   void limpiarFormulario() {
     nombreController.clear();
     correoController.clear();

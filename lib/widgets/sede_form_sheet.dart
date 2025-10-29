@@ -68,7 +68,6 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
     }
   }
 
-  // ✅ MÉTODO CORREGIDO: Mostrar preview según tipo de imagen
   Widget _buildImagePreview() {
     if (_pickedPath.isEmpty) {
       return const Center(
@@ -90,10 +89,9 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
       );
     }
 
-    // Si hay una imagen nueva seleccionada (blob en web o path en móvil)
     if (_pickedImage != null) {
       if (kIsWeb) {
-        // En web, usar Image.network con la URL blob
+        
         return Image.network(
           _pickedPath,
           fit: BoxFit.cover,
@@ -105,7 +103,7 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
           },
         );
       } else {
-        // En móvil, usar Image.file
+       
         return Image.file(
           File(_pickedPath),
           fit: BoxFit.cover,
@@ -119,7 +117,6 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
       }
     }
 
-    // Si es una URL de Firebase (ya guardada)
     if (_pickedPath.startsWith('http://') || _pickedPath.startsWith('https://')) {
       return Image.network(
         _pickedPath,
@@ -140,7 +137,6 @@ class _SedeFormSheetState extends State<SedeFormSheet> {
       );
     }
 
-    // Si es un asset local
     return Image.asset(
       _pickedPath,
       fit: BoxFit.cover,

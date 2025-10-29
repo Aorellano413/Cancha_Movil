@@ -224,9 +224,6 @@ class _PropietarioCanchasViewState extends State<PropietarioCanchasView> {
     );
   }
 }
-
-// ============ CARD DE CANCHA ============
-
 class _CanchaCard extends StatelessWidget {
   final CanchaModel cancha;
   final VoidCallback onEditar;
@@ -251,9 +248,7 @@ class _CanchaCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               child: Stack(
                 children: [
-                  // ✅ ACTUALIZAR ESTA PARTE
                   _buildImage(cancha.image),
-                  // Tipo de cancha tag
                   Positioned(
                     top: 12,
                     right: 12,
@@ -276,7 +271,6 @@ class _CanchaCard extends StatelessWidget {
                 ],
               ),
             ),
-          // Información
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -385,9 +379,8 @@ class _CanchaCard extends StatelessWidget {
     }
   }
 
-  // ✅ AGREGAR ESTE MÉTODO AL FINAL DE LA CLASE _CanchaCard:
   Widget _buildImage(String imagePath) {
-    // Si es una URL de Firebase Storage
+    
     if (imagePath.startsWith('http')) {
       return Image.network(
         imagePath,
@@ -420,8 +413,6 @@ class _CanchaCard extends StatelessWidget {
         },
       );
     }
-    
-    // Si es un asset local
     return Image.asset(
       imagePath,
       height: 180,

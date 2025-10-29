@@ -78,7 +78,6 @@ class ReservaDetalleSheet extends StatelessWidget {
         ? reserva['cancha']['price'] ?? '\$0'
         : '\$0';
 
-    // Convertir la fecha a String legible
     String fechaTexto = 'Sin fecha';
     final dynamic fechaReservaRaw = reserva['fechaReserva'];
 

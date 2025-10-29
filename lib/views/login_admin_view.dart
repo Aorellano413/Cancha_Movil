@@ -84,7 +84,7 @@ class _LoginAdminViewState extends State<LoginAdminView> {
         backgroundColor: const Color(0xFFE6E9FF),
         body: Stack(
         children: [
-          // 🔹 Contenido principal
+        
           Center(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(
@@ -155,7 +155,6 @@ class _LoginAdminViewState extends State<LoginAdminView> {
             ),
           ),
 
-          // 🔹 Botón de retroceso flotante (arriba a la izquierda)
           Positioned(
             top: 40,
             left: 20,
@@ -225,7 +224,6 @@ class _LoginAdminViewState extends State<LoginAdminView> {
           ),
           const SizedBox(height: 20),
 
-          // Contraseña
           TextFormField(
             controller: _passController,
             obscureText: !_showPassword,
@@ -264,7 +262,6 @@ class _LoginAdminViewState extends State<LoginAdminView> {
 
           const SizedBox(height: 25),
 
-          // Botón de login
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -298,7 +295,6 @@ class _LoginAdminViewState extends State<LoginAdminView> {
 
           const SizedBox(height: 16),
 
-          // Recuperar contraseña
           Center(
             child: TextButton(
               onPressed: _isLoading ? null : _mostrarRecuperarPassword,

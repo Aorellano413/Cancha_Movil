@@ -35,7 +35,7 @@ class CanchasController extends ChangeNotifier {
     }
   }
 
-  /// Escuchar cambios en tiempo real
+  ///  cambios en tiempo real
   void escucharCanchas(String sedeId) {
     _sedeId = sedeId;
     _firestore.getCanchasPorSedeStream(sedeId).listen(
@@ -100,7 +100,6 @@ class CanchasController extends ChangeNotifier {
 
   Future<void> eliminarCancha(String canchaId) async {
     try {
-      // ✅ AGREGAR ESTAS LÍNEAS ANTES DE ELIMINAR
       final cancha = _canchas.firstWhere((c) => c.id == canchaId);
       if (cancha.image.isNotEmpty && _storage.esUrlFirebase(cancha.image)) {
         await _storage.eliminarImagen(cancha.image);

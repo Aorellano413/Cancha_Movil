@@ -11,18 +11,16 @@ import '../views/propietario_dashboard_view.dart';
 import '../views/propietario_canchas_view.dart';
 
 class AppRoutes {
-  // Rutas públicas
+
   static const String login = '/login';
   static const String sedes = '/sedes';
   static const String reserva = '/reserva';
   static const String pagos = '/pagos';
   
-  // Rutas de administración
   static const String loginAdmin = '/loginAdmin';
   static const String adminDashboard = '/adminDashboard';
   static const String superAdminUsuarios = '/superAdminUsuarios';
   
-  // Rutas de propietario
   static const String propietarioDashboard = '/propietarioDashboard';
   static const String propietarioCanchas = '/propietarioCanchas';
 

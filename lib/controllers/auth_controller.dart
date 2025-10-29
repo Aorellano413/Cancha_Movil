@@ -22,7 +22,7 @@ class AuthController extends ChangeNotifier {
     _initAuthListener();
   }
 
-  /// Escuchar cambios en el estado de autenticación
+  /// cambios en el estado de autenticación
   void _initAuthListener() {
     _authService.authStateChanges.listen((User? firebaseUser) async {
       if (firebaseUser != null) {

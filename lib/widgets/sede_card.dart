@@ -17,7 +17,7 @@ class SedeCard extends StatelessWidget {
   });
 
   Widget _buildImage() {
-    // Si es una URL de Firebase Storage (http/https)
+   
     if (sede.imagePath.startsWith('http://') || sede.imagePath.startsWith('https://')) {
       return Image.network(
         sede.imagePath,
@@ -37,8 +37,7 @@ class SedeCard extends StatelessWidget {
         },
       );
     }
-    
-    // Si es un asset local
+   
     if (!sede.imagePath.startsWith('/') && !sede.imagePath.contains(':\\')) {
       return Image.asset(
         sede.imagePath,
@@ -52,7 +51,6 @@ class SedeCard extends StatelessWidget {
       );
     }
     
-    // Si es una ruta de archivo (móvil)
     if (!kIsWeb) {
       return Image.file(
         File(sede.imagePath),
@@ -66,7 +64,6 @@ class SedeCard extends StatelessWidget {
       );
     }
     
-    // Fallback
     return Container(
       color: Colors.grey.shade300,
       child: const Icon(Icons.stadium, size: 64, color: Colors.grey),
@@ -91,7 +88,7 @@ class SedeCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         child: Stack(
           children: [
-            // ✅ Imagen como widget en lugar de DecorationImage
+           
             Positioned.fill(
               child: ColorFiltered(
                 colorFilter: ColorFilter.mode(

@@ -234,9 +234,7 @@ class _CanchasViewState extends State<CanchasView> {
     );
   }
 
-  // ✅ AGREGAR ESTE MÉTODO AL FINAL DE LA CLASE _CanchasViewState:
   Widget _buildCanchaImage(String imagePath) {
-    // URLs de Firebase Storage
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return Image.network(
         imagePath,
@@ -256,8 +254,6 @@ class _CanchasViewState extends State<CanchasView> {
         },
       );
     }
-    
-    // Assets locales
     return Image.asset(
       imagePath,
       height: 180,

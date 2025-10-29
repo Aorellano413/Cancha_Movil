@@ -53,7 +53,6 @@ class EmailService {
     const lightGray = '#F3F4F6';
     const border = '#E5E7EB';
     const headerDark = '#1e3a8a';
-    // ignore: unused_local_variable
     const primary = '#2563eb';
 
     final filas = items.map((it) {

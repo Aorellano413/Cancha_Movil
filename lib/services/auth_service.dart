@@ -12,15 +12,10 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Stream del estado de autenticación
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // Usuario actual
   User? get currentUser => _auth.currentUser;
 
-  // ============ AUTENTICACIÓN ============
-
-  /// Login con email y contraseña
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
@@ -38,7 +33,6 @@ class AuthService {
         };
       }
 
-      // Obtener datos del usuario desde Firestore
       final userData = await getUserData(credential.user!.uid);
       
       if (userData == null) {
@@ -97,17 +91,12 @@ class AuthService {
     }
   }
 
-  /// Cerrar sesión
   Future<void> logout() async {
     await _auth.signOut();
   }
 
-  /// Verificar si el usuario está autenticado
   bool get isAuthenticated => currentUser != null;
 
-  // ============ GESTIÓN DE USUARIOS (Solo Super Admin) ============
-
-  /// Crear nuevo usuario (Super Admin)
   Future<Map<String, dynamic>> crearUsuario({
     required String nombre,
     required String email,
@@ -116,7 +105,7 @@ class AuthService {
     String? sedeAsignada,
     String? telefono,
   }) async {
-    // Guardar datos del admin actual ANTES de crear el nuevo usuario
+
     final adminActual = currentUser;
     final adminEmail = adminActual?.email;
     
@@ -128,7 +117,6 @@ class AuthService {
     }
 
     try {
-      // Validar que solo super admin pueda crear usuarios
       final currentUserData = await getUserData(adminActual.uid);
       if (currentUserData == null || !currentUserData.isSuperAdmin) {
         return {
@@ -137,7 +125,6 @@ class AuthService {
         };
       }
 
-      // Validar que propietarios tengan sede asignada
       if (rol == UserRole.propietario && sedeAsignada == null) {
         return {
           'success': false,
@@ -145,7 +132,6 @@ class AuthService {
         };
       }
 
-      // ✅ SOLUCIÓN: Crear instancia secundaria de Auth
       final secondaryApp = await Firebase.initializeApp(
         name: 'SecondaryApp-${DateTime.now().millisecondsSinceEpoch}',
         options: Firebase.app().options,
@@ -154,7 +140,6 @@ class AuthService {
       final secondaryAuth = FirebaseAuth.instanceFor(app: secondaryApp);
 
       try {
-        // Crear usuario en la instancia secundaria
         final credential = await secondaryAuth.createUserWithEmailAndPassword(
           email: email.trim(),
           password: password,
@@ -170,7 +155,6 @@ class AuthService {
 
         final uid = credential.user!.uid;
 
-        // Crear documento del usuario en Firestore
         final nuevoUsuario = UserModel(
           id: uid,
           nombre: nombre.trim(),
@@ -187,7 +171,6 @@ class AuthService {
             .doc(uid)
             .set(nuevoUsuario.toJson());
 
-        // Si es propietario, actualizar la sede con el propietarioId
         if (rol == UserRole.propietario && sedeAsignada != null) {
           await _firestore.collection('sedes').doc(sedeAsignada).update({
             'propietarioId': uid,
@@ -195,7 +178,6 @@ class AuthService {
           });
         }
 
-        // Cerrar sesión del usuario secundario y eliminar la app
         await secondaryAuth.signOut();
         await secondaryApp.delete();
 
@@ -205,7 +187,7 @@ class AuthService {
           'uid': uid,
         };
       } catch (e) {
-        // Asegurar que se elimine la app secundaria en caso de error
+
         await secondaryApp.delete();
         rethrow;
       }
@@ -238,7 +220,6 @@ class AuthService {
     }
   }
 
-  /// Obtener todos los usuarios (Solo Super Admin)
   Future<List<UserModel>> getAllUsers() async {
     try {
       final snapshot = await _firestore.collection('usuarios').get();
@@ -254,7 +235,6 @@ class AuthService {
     }
   }
 
-  /// Obtener datos de un usuario específico
   Future<UserModel?> getUserData(String uid) async {
     try {
       final doc = await _firestore.collection('usuarios').doc(uid).get();
@@ -270,13 +250,12 @@ class AuthService {
     }
   }
 
-  /// Actualizar usuario (Solo Super Admin)
   Future<Map<String, dynamic>> actualizarUsuario({
     required String uid,
     required UserModel userData,
   }) async {
     try {
-      // Validar permisos
+
       final currentUserData = await getUserData(currentUser?.uid ?? '');
       if (currentUserData == null || !currentUserData.isSuperAdmin) {
         return {
@@ -285,13 +264,11 @@ class AuthService {
         };
       }
 
-      // Actualizar en Firestore
       await _firestore
           .collection('usuarios')
           .doc(uid)
           .update(userData.toJson());
 
-      // Si cambió la sede del propietario, actualizar la sede
       if (userData.isPropietario && userData.sedeAsignada != null) {
         await _firestore
             .collection('sedes')
@@ -314,10 +291,9 @@ class AuthService {
     }
   }
 
-  /// Desactivar usuario (soft delete)
   Future<Map<String, dynamic>> eliminarUsuario(String uid) async {
     try {
-      // Validar permisos
+
       final currentUserData = await getUserData(currentUser?.uid ?? '');
       if (currentUserData == null || !currentUserData.isSuperAdmin) {
         return {
@@ -326,7 +302,6 @@ class AuthService {
         };
       }
 
-      // No se puede eliminar a sí mismo
       if (uid == currentUser?.uid) {
         return {
           'success': false,
@@ -334,7 +309,6 @@ class AuthService {
         };
       }
 
-      // Desactivar en lugar de eliminar
       await _firestore.collection('usuarios').doc(uid).update({
         'activo': false,
       });
@@ -351,7 +325,6 @@ class AuthService {
     }
   }
 
-  /// Cambiar contraseña
   Future<Map<String, dynamic>> cambiarPassword({
     required String oldPassword,
     required String newPassword,
@@ -365,14 +338,12 @@ class AuthService {
         };
       }
 
-      // Re-autenticar al usuario
       final credential = EmailAuthProvider.credential(
         email: user.email!,
         password: oldPassword,
       );
 
       await user.reauthenticateWithCredential(credential);
-
       // Cambiar contraseña
       await user.updatePassword(newPassword);
 
@@ -406,7 +377,6 @@ class AuthService {
     }
   }
 
-  /// Recuperar contraseña
   Future<Map<String, dynamic>> recuperarPassword(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email.trim());

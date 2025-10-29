@@ -45,7 +45,6 @@ class SedesController extends ChangeNotifier {
     if (_ordenarPorDistancia && _sedesConDistancia.isNotEmpty) {
       return _sedesConDistancia;
     }
-    // Si no está ordenando por distancia, devolver sedes normales sin distancia
     return _todasLasSedes.map((sede) => 
       SedeConDistancia(sede: sede, distanciaKm: null)
     ).toList();
@@ -95,14 +94,12 @@ class SedesController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ⭐ NUEVO MÉTODO: Buscar sedes cercanas
   Future<void> buscarSedesCercanas() async {
     _buscandoUbicacion = true;
     _error = null;
     notifyListeners();
 
     try {
-      // 1. Obtener ubicación del usuario
       _ubicacionUsuario = await _location.obtenerUbicacionActual();
       
       if (_ubicacionUsuario == null) {
@@ -112,13 +109,11 @@ class SedesController extends ChangeNotifier {
         return;
       }
 
-      // 2. Calcular distancia para cada sede
       List<SedeConDistancia> sedesConDist = [];
       
       for (var sede in _todasLasSedes) {
         double? distancia;
-        
-        // Si la sede ya tiene coordenadas guardadas
+ 
         if (sede.tieneCoordenadasValidas()) {
           distancia = _location.calcularDistancia(
             _ubicacionUsuario!.latitude,
@@ -127,22 +122,17 @@ class SedesController extends ChangeNotifier {
             sede.longitud!,
           );
         } else {
-          // Geocodificar la dirección (subtitle)
           final coords = await _location.convertirDireccionACoordenadas(
             sede.subtitle,
           );
           
           if (coords != null) {
-            // Actualizar la sede con las coordenadas obtenidas
             final sedeActualizada = sede.copyWith(
               latitud: coords['latitud'],
               longitud: coords['longitud'],
             );
-            
-            // Guardar coordenadas en Firestore para búsquedas futuras
             if (sede.id != null) {
               await _firestore.actualizarSede(sede.id!, sedeActualizada);
-              // Actualizar en la lista local
               final index = _todasLasSedes.indexWhere((s) => s.id == sede.id);
               if (index != -1) {
                 _todasLasSedes[index] = sedeActualizada;
@@ -163,8 +153,6 @@ class SedesController extends ChangeNotifier {
           distanciaKm: distancia,
         ));
       }
-
-      // 3. Ordenar por distancia (más cercanas primero)
       sedesConDist.sort((a, b) {
         if (a.distanciaKm == null) return 1;
         if (b.distanciaKm == null) return -1;
@@ -182,8 +170,6 @@ class SedesController extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  // ⭐ NUEVO MÉTODO: Resetear orden
   void resetearOrden() {
     _ordenarPorDistancia = false;
     _sedesConDistancia = [];

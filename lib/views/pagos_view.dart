@@ -16,8 +16,6 @@ class PagosView extends StatelessWidget {
         ),
       );
     }
-
-    // Extraer datos reales
     final String nombre = args['nombreCompleto'] ?? 'Sin nombre';
     final String correo = args['correoElectronico'] ?? 'Sin correo';
     final String numero = args['numeroCelular'] ?? 'Sin teléfono';

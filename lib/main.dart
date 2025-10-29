@@ -8,7 +8,7 @@ import 'controllers/theme_controller.dart';
 import 'controllers/sedes_controller.dart';
 import 'controllers/reserva_controller.dart';
 import 'controllers/canchas_controller.dart';
-import 'controllers/auth_controller.dart'; // ✅ IMPORTAR
+import 'controllers/auth_controller.dart'; 
 import 'theme/app_theme.dart';
 import 'routes/app_routes.dart';
 

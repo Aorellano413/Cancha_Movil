@@ -8,7 +8,7 @@ import '../controllers/canchas_controller.dart';
 import '../services/firestore_service.dart';
 import '../routes/app_routes.dart';
 import '../widgets/estadistica_card.dart';
-import '../widgets/reserva_detalle_sheet.dart'; // ✅ IMPORTAR
+import '../widgets/reserva_detalle_sheet.dart';
 
 class PropietarioDashboardView extends StatefulWidget {
   const PropietarioDashboardView({super.key});
@@ -30,8 +30,7 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
   bool _loadingReservas = true;
   bool _loadingEstadisticas = true;
 
-  // Filtro de tiempo
-  String _filtroTiempo = 'hoy'; // hoy, semana, mes, año
+  String _filtroTiempo = 'hoy'; 
 
   @override
   void initState() {
@@ -45,16 +44,11 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
     _sedeId = authController.currentUser?.sedeAsignada;
 
     if (_sedeId != null) {
-      // Obtener nombre de la sede
       final sedes = await _firestore.getSedes();
       final sede = sedes.firstWhere((s) => s.id == _sedeId, orElse: () => sedes.first);
       setState(() => _sedeName = sede.title);
-
-      // Cargar canchas de la sede
       final canchasController = Provider.of<CanchasController>(context, listen: false);
       await canchasController.cargarCanchasPorSede(_sedeId!);
-
-      // Cargar datos
       await _cargarDatos();
     }
   }
@@ -82,8 +76,7 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
     setState(() => _loadingReservas = true);
     try {
       final todasReservas = await _firestore.getReservasCompletasPorSede(_sedeId!);
-      
-      // ✅ FILTRO CORREGIDO: Comparar solo año, mes y día
+ 
       final reservasFiltradas = todasReservas.where((reserva) {
         final fechaReserva = reserva['fechaReserva'];
         if (fechaReserva == null) return false;
@@ -99,20 +92,17 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
         
         switch (_filtroTiempo) {
           case 'hoy':
-            // ✅ Comparar solo año, mes y día (sin hora)
             return fecha.year == ahora.year &&
                    fecha.month == ahora.month &&
                    fecha.day == ahora.day;
           case 'semana':
-            // ✅ Últimos 7 días (inclusive hoy)
+
             final inicioSemana = DateTime(ahora.year, ahora.month, ahora.day).subtract(Duration(days: 7));
             final fechaSolo = DateTime(fecha.year, fecha.month, fecha.day);
             return fechaSolo.isAfter(inicioSemana) || fechaSolo.isAtSameMomentAs(inicioSemana);
           case 'mes':
-            // ✅ Mes actual completo
             return fecha.year == ahora.year && fecha.month == ahora.month;
           case 'año':
-            // ✅ Año actual completo
             return fecha.year == ahora.year;
           default:
             return true;
@@ -168,7 +158,6 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
     );
   }
 
-  // ✅ NUEVO: Mostrar detalle de reserva
   Future<void> _mostrarDetalleReserva(Map<String, dynamic> reserva) async {
     await showModalBottomSheet(
       context: context,
@@ -215,7 +204,6 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
       );
     }
 
-    // Contar reservas por estado
     int pendientes = 0;
     int pagadas = 0;
     int canceladas = 0;
@@ -350,11 +338,9 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Filtros de tiempo
             _buildFiltrosTiempo(),
             const SizedBox(height: 20),
 
-            // Estadísticas
             if (_loadingEstadisticas)
               const Center(child: CircularProgressIndicator())
             else
@@ -362,12 +348,10 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
             
             const SizedBox(height: 24),
 
-            // Gráfica
             _buildGraficaReservas(),
             
             const SizedBox(height: 24),
 
-            // Reservas recientes
             _buildReservasSection(),
           ],
         ),
@@ -522,7 +506,6 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
             separatorBuilder: (_, __) => const SizedBox(height: 6),
             itemBuilder: (_, index) {
               final reserva = _reservas[index];
-              // ✅ AGREGADO: onTap para mostrar detalle
               return _ReservaCard(
                 reserva: reserva,
                 onTap: () => _mostrarDetalleReserva(reserva),
@@ -567,8 +550,6 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
     );
   }
 }
-
-// ============ WIDGETS AUXILIARES ============
 
 class _FiltroChip extends StatelessWidget {
   final String label;
@@ -652,14 +633,13 @@ class _LegendaItem extends StatelessWidget {
   }
 }
 
-// ✅ MODIFICADO: Agregado onTap
 class _ReservaCard extends StatelessWidget {
   final Map<String, dynamic> reserva;
-  final VoidCallback onTap; // ✅ AGREGADO
+  final VoidCallback onTap; 
 
   const _ReservaCard({
     required this.reserva,
-    required this.onTap, // ✅ AGREGADO
+    required this.onTap, 
   });
 
   @override
@@ -684,9 +664,8 @@ class _ReservaCard extends StatelessWidget {
         estadoColor = const Color(0xFFFFA000);
     }
 
-    // ✅ MODIFICADO: Envuelto en InkWell
     return InkWell(
-      onTap: onTap, // ✅ AGREGADO
+      onTap: onTap, 
       borderRadius: BorderRadius.circular(12),
       child: Card(
         elevation: 0.8,
@@ -755,7 +734,7 @@ class _ReservaCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // ✅ AGREGADO: Icono visual de que es clickeable
+            
               const Icon(
                 Icons.arrow_forward_ios,
                 size: 14,

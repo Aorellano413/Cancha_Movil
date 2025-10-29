@@ -11,9 +11,6 @@ class FirestoreService {
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // ============ SEDES ============
-  
-  /// Obtener todas las sedes
   Stream<List<SedeModel>> getSedesStream() {
     return _db.collection('sedes').snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -24,7 +21,6 @@ class FirestoreService {
     });
   }
 
-  /// Obtener sedes como Future
   Future<List<SedeModel>> getSedes() async {
     final snapshot = await _db.collection('sedes').get();
     return snapshot.docs.map((doc) {
@@ -34,25 +30,18 @@ class FirestoreService {
     }).toList();
   }
 
-  /// Agregar nueva sede
   Future<String> agregarSede(SedeModel sede) async {
     final docRef = await _db.collection('sedes').add(sede.toJson());
     return docRef.id;
   }
-
-  /// Actualizar sede
   Future<void> actualizarSede(String sedeId, SedeModel sede) async {
     await _db.collection('sedes').doc(sedeId).update(sede.toJson());
   }
 
-  /// Eliminar sede
   Future<void> eliminarSede(String sedeId) async {
     await _db.collection('sedes').doc(sedeId).delete();
   }
 
-  // ============ CANCHAS ============
-
-  /// Obtener canchas por sede
   Stream<List<CanchaModel>> getCanchasPorSedeStream(String sedeId) {
     return _db
         .collection('canchas')
@@ -67,7 +56,6 @@ class FirestoreService {
     });
   }
 
-  /// Obtener canchas por sede como Future
   Future<List<CanchaModel>> getCanchasPorSede(String sedeId) async {
     final snapshot = await _db
         .collection('canchas')
@@ -81,7 +69,6 @@ class FirestoreService {
     }).toList();
   }
 
-  /// Agregar nueva cancha
   Future<String> agregarCancha(CanchaModel cancha, String sedeId) async {
     final data = cancha.toJson();
     data['sedeId'] = sedeId;
@@ -89,19 +76,14 @@ class FirestoreService {
     return docRef.id;
   }
 
-  /// Actualizar cancha
   Future<void> actualizarCancha(String canchaId, CanchaModel cancha) async {
     await _db.collection('canchas').doc(canchaId).update(cancha.toJson());
   }
 
-  /// Eliminar cancha
   Future<void> eliminarCancha(String canchaId) async {
     await _db.collection('canchas').doc(canchaId).delete();
   }
 
-  // ============ RESERVAS ============
-
-  /// Crear nueva reserva
   Future<String> crearReserva(ReservaModel reserva, String canchaId, String sedeId) async {
     final data = reserva.toJson();
     data['canchaId'] = canchaId;
@@ -113,7 +95,6 @@ class FirestoreService {
     return docRef.id;
   }
 
-  /// Obtener todas las reservas
   Stream<List<Map<String, dynamic>>> getReservasStream() {
     return _db
         .collection('reservas')
@@ -128,7 +109,6 @@ class FirestoreService {
     });
   }
 
-  /// Obtener reservas por estado
   Stream<List<Map<String, dynamic>>> getReservasPorEstadoStream(String estado) {
     return _db
         .collection('reservas')
@@ -144,7 +124,6 @@ class FirestoreService {
     });
   }
 
-  /// Obtener reservas por usuario (correo)
   Future<List<Map<String, dynamic>>> getReservasPorUsuario(String correo) async {
     final snapshot = await _db
         .collection('reservas')
@@ -158,8 +137,7 @@ class FirestoreService {
       return data;
     }).toList();
   }
-
-  /// Actualizar estado de reserva
+  
   Future<void> actualizarEstadoReserva(String reservaId, String nuevoEstado) async {
     await _db.collection('reservas').doc(reservaId).update({
       'estado': nuevoEstado,
@@ -167,69 +145,55 @@ class FirestoreService {
     });
   }
 
-  /// Eliminar reserva
   Future<void> eliminarReserva(String reservaId) async {
     await _db.collection('reservas').doc(reservaId).delete();
   }
 
-  /// Verificar disponibilidad SIN índice compuesto
   Future<bool> verificarDisponibilidad({
     required String canchaId,
     required DateTime fecha,
     required String horaReserva,
   }) async {
     try {
-      // Crear timestamps para el inicio y fin del día
       final inicioDelDia = DateTime(fecha.year, fecha.month, fecha.day);
       final finDelDia = DateTime(fecha.year, fecha.month, fecha.day, 23, 59, 59);
-
-      // Paso 1: Obtener todas las reservas de la cancha (sin filtrar por fecha)
       final snapshot = await _db
           .collection('reservas')
           .where('canchaId', isEqualTo: canchaId)
           .get();
 
-      // Paso 2: Filtrar manualmente por fecha, hora y estado
       for (var doc in snapshot.docs) {
         final data = doc.data();
-        
-        // Extraer datos del documento
+
         final Timestamp? fechaTimestamp = data['fechaReserva'];
         final String? horaDoc = data['horaReserva'];
         final String? estadoDoc = data['estado'];
 
-        // Verificar si tiene los campos necesarios
         if (fechaTimestamp == null || horaDoc == null || estadoDoc == null) {
           continue;
         }
 
-        // Convertir Timestamp a DateTime
         final fechaDoc = fechaTimestamp.toDate();
 
-        // Verificar si es el mismo día
         final mismaFecha = fechaDoc.year == fecha.year &&
                           fechaDoc.month == fecha.month &&
                           fechaDoc.day == fecha.day;
 
-        // Verificar si la hora y el estado coinciden
         if (mismaFecha && 
             horaDoc == horaReserva && 
             (estadoDoc == 'pendiente' || estadoDoc == 'confirmada' || estadoDoc == 'pagado')) {
-          // Ya existe una reserva para esa fecha y hora
+
           return false;
         }
       }
 
-      // No hay conflictos, está disponible
       return true;
     } catch (e) {
       print('❌ Error al verificar disponibilidad: $e');
-      // En caso de error, por seguridad retornamos false
       return false;
     }
   }
 
-  /// Obtener estadísticas del dashboard (para Super Admin)
   Future<Map<String, dynamic>> getEstadisticasDashboard() async {
     final reservasSnapshot = await _db.collection('reservas').get();
     final sedesSnapshot = await _db.collection('sedes').get();
@@ -255,8 +219,6 @@ class FirestoreService {
       'reservasCanceladas': canceladas,
     };
   }
-
-  /// ✅ NUEVO: Obtener estadísticas por sede (para Propietarios)
   Future<Map<String, dynamic>> getEstadisticasPorSede(String sedeId) async {
     try {
       final reservasSnapshot = await _db
@@ -283,7 +245,7 @@ class FirestoreService {
       return {
         'totalReservas': reservasSnapshot.docs.length,
         'totalCanchas': canchasSnapshot.docs.length,
-        'totalSedes': 1, // Solo una sede para el propietario
+        'totalSedes': 1, 
         'reservasPendientes': pendientes,
         'reservasPagadas': pagadas,
         'reservasCanceladas': canceladas,
@@ -294,7 +256,6 @@ class FirestoreService {
     }
   }
 
-  /// Obtener reservas con información completa (para Super Admin)
   Future<List<Map<String, dynamic>>> getReservasCompletas() async {
     try {
       final reservasSnapshot = await _db
@@ -308,7 +269,6 @@ class FirestoreService {
         final reservaData = doc.data();
         reservaData['id'] = doc.id;
 
-        // Obtener información de la sede con manejo de errores
         if (reservaData['sedeId'] != null) {
           try {
             final sedeDoc = await _db
@@ -333,7 +293,6 @@ class FirestoreService {
           }
         }
 
-        // Obtener información de la cancha con manejo de errores
         if (reservaData['canchaId'] != null) {
           try {
             final canchaDoc = await _db
@@ -367,8 +326,6 @@ class FirestoreService {
       rethrow;
     }
   }
-
-  /// ✅ NUEVO: Obtener reservas por sede con información completa (para Propietarios)
   Future<List<Map<String, dynamic>>> getReservasCompletasPorSede(String sedeId) async {
     try {
       final reservasSnapshot = await _db
@@ -383,7 +340,6 @@ class FirestoreService {
         final reservaData = doc.data();
         reservaData['id'] = doc.id;
 
-        // Para reservas de la propia sede, intentar obtener datos
         if (reservaData['sedeId'] != null) {
           try {
             final sedeDoc = await _db

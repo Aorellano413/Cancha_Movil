@@ -81,7 +81,6 @@ class LoginView extends StatelessWidget {
                               );
                             }).toList(),
                           ),
-                          // ====== ICONOS LATERALES: MODO OSCURO + REDES ======
                           Positioned(
                             top: 12,
                             right: 12,
@@ -207,8 +206,6 @@ class LoginView extends StatelessWidget {
                               ),
                             ),
                           ),
-
-                          // ====== BOTÓN TEMPORAL PARA POBLAR DATOS ======
                           const SizedBox(height: 20),
                           const Divider(),
                           const SizedBox(height: 12),
@@ -327,8 +324,6 @@ class LoginView extends StatelessWidget {
                               ),
                             ],
                           ),
-
-                          // ====== PIE DE PÁGINA RESERVASPORTS ======
                           const SizedBox(height: 30),
                           Text(
                             "© 2025 ReservaSports. Todos los derechos reservados.",

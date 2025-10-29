@@ -10,11 +10,9 @@ class StorageService {
 
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  /// Subir imagen de sede
-  /// Retorna la URL de descarga
   Future<String> subirImagenSede({
     required String sedeId,
-    required dynamic imageFile, // XFile o File
+    required dynamic imageFile, 
   }) async {
     try {
       final String fileName = 'sede_${sedeId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -23,14 +21,14 @@ class StorageService {
       UploadTask uploadTask;
 
       if (kIsWeb) {
-        // Para web, usar bytes
+      
         final bytes = await imageFile.readAsBytes();
         uploadTask = ref.putData(
           bytes,
           SettableMetadata(contentType: 'image/jpeg'),
         );
       } else {
-        // Para móvil, usar File
+        
         final file = File(imageFile.path);
         uploadTask = ref.putFile(
           file,
@@ -49,8 +47,6 @@ class StorageService {
     }
   }
 
-  /// Subir imagen de cancha
-  /// Retorna la URL de descarga
   Future<String> subirImagenCancha({
     required String canchaId,
     required dynamic imageFile,
@@ -86,7 +82,6 @@ class StorageService {
     }
   }
 
-  /// Eliminar imagen por URL
   Future<void> eliminarImagen(String imageUrl) async {
     try {
       if (imageUrl.isEmpty || !imageUrl.contains('firebase')) {
@@ -99,11 +94,9 @@ class StorageService {
       print('✅ Imagen eliminada: $imageUrl');
     } catch (e) {
       print('❌ Error al eliminar imagen: $e');
-      // No lanzamos el error para que no interrumpa el flujo
     }
   }
 
-  /// Eliminar todas las imágenes de una sede
   Future<void> eliminarImagenesSede(String sedeId) async {
     try {
       final Reference sedesRef = _storage.ref().child('sedes');
@@ -120,7 +113,6 @@ class StorageService {
     }
   }
 
-  /// Eliminar todas las imágenes de una cancha
   Future<void> eliminarImagenesCancha(String canchaId) async {
     try {
       final Reference canchasRef = _storage.ref().child('canchas');
@@ -137,12 +129,10 @@ class StorageService {
     }
   }
 
-  /// Validar si una URL es de Firebase Storage
   bool esUrlFirebase(String url) {
     return url.contains('firebasestorage.googleapis.com');
   }
 
-  /// Obtener el tamaño de una imagen en Firebase Storage
   Future<int> obtenerTamanoImagen(String imageUrl) async {
     try {
       final Reference ref = _storage.refFromURL(imageUrl);

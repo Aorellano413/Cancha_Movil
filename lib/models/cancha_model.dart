@@ -8,8 +8,8 @@ enum TipoCancha {
 }
 
 class CanchaModel {
-  final String? id; // ID de Firestore
-  final String? sedeId; // ID de la sede
+  final String? id; 
+  final String? sedeId; 
   final String image;
   final String title;
   final String price;

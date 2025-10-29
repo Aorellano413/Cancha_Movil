@@ -7,11 +7,11 @@ enum UserRole {
 }
 
 class UserModel {
-  final String? id; // UID de Firebase Auth
+  final String? id; 
   final String nombre;
   final String email;
   final UserRole rol;
-  final String? sedeAsignada; // Solo para propietarios
+  final String? sedeAsignada; 
   final String? telefono;
   final DateTime? createdAt;
   final bool activo;
@@ -27,7 +27,6 @@ class UserModel {
     this.activo = true,
   });
 
-  // Convertir desde JSON de Firestore
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'],
@@ -43,7 +42,6 @@ class UserModel {
     );
   }
 
-  // Convertir a JSON para Firestore
   Map<String, dynamic> toJson() {
     return {
       if (id != null) 'id': id,
@@ -71,13 +69,10 @@ class UserModel {
     }
   }
 
-  // Helper para verificar si es super admin
   bool get isSuperAdmin => rol == UserRole.superAdmin;
 
-  // Helper para verificar si es propietario
   bool get isPropietario => rol == UserRole.propietario;
 
-  // Copiar con modificaciones
   UserModel copyWith({
     String? id,
     String? nombre,
