@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:255093586479:android:671f269e471676839324da",
+        "mobilesdk_app_id": "1:255093586479:android:66866480440a3c3d9324da",
         "android_client_info": {
-          "package_name": "com.example.cancha_movil"
+          "package_name": "com.reservasports.app"
         }
       },
       "oauth_client": [],

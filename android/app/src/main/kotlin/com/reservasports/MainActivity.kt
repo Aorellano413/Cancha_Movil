@@ -1,4 +1,4 @@
-package com.example.cancha_movil
+package com.reservasports.app
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -78,7 +78,6 @@ class SedeModel {
     );
   }
 
-  // ⭐ NUEVO MÉTODO
   bool tieneCoordenadasValidas() {
     return latitud != null && longitud != null;
   }
