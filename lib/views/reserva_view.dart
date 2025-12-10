@@ -1,5 +1,6 @@
 // lib/views/reserva_view.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; 
 import 'package:provider/provider.dart';
 import '../controllers/reserva_controller.dart';
 import '../services/firestore_service.dart';
@@ -91,22 +92,44 @@ class _ReservaViewState extends State<ReservaView> {
           key: controller.formKey,
           child: ListView(
             children: [
+              
               TextFormField(
                 controller: controller.nombreController,
+                maxLength: 20, 
                 decoration: const InputDecoration(
                   labelText: "Nombre completo",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.person),
                   hintText: 'Ej: Juan Pérez',
+                  counterText: '',
                 ),
+                inputFormatters: [
+                  
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'[A-Za-zÁÉÍÓÚáéíóúñÑ ]'),
+                  ),
+                ],
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Por favor ingrese su nombre completo';
                   }
+
+                  final trimmed = value.trim();
+
+                  if (trimmed.length < 2 || trimmed.length > 20) {
+                    return 'El nombre debe tener entre 2 y 20 caracteres';
+                  }
+
+                  final regex = RegExp(r'^[A-Za-zÁÉÍÓÚáéíóúñÑ ]+$');
+                  if (!regex.hasMatch(trimmed)) {
+                    return 'El nombre solo puede contener letras y espacios';
+                  }
+
                   return null;
                 },
               ),
               const SizedBox(height: 16),
+
               TextFormField(
                 controller: controller.correoController,
                 keyboardType: TextInputType.emailAddress,
@@ -120,33 +143,49 @@ class _ReservaViewState extends State<ReservaView> {
                   if (value == null || value.trim().isEmpty) {
                     return 'Por favor ingrese su correo';
                   }
-                  if (!value.contains('@') || !value.contains('.')) {
+
+                  final trimmed = value.trim();
+                  final emailRegex =
+                      RegExp(r'^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$');
+
+                  if (!emailRegex.hasMatch(trimmed)) {
                     return 'Por favor ingrese un correo válido';
                   }
+
                   return null;
                 },
               ),
               const SizedBox(height: 16),
+
               TextFormField(
                 controller: controller.celularController,
                 keyboardType: TextInputType.phone,
+                maxLength: 10, // 👈 No deja escribir más de 10 dígitos
                 decoration: const InputDecoration(
                   labelText: "Número de celular",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.phone),
                   hintText: 'Ej: 3001234567',
+                  counterText: '', // opcional: oculta el contador visual
                 ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly, // Solo números
+                ],
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Por favor ingrese su número de celular';
                   }
-                  if (value.replaceAll(RegExp(r'[^0-9]'), '').length < 10) {
-                    return 'Ingrese un número válido (mínimo 10 dígitos)';
+
+                  final cleaned = value.replaceAll(RegExp(r'\D'), '');
+                  if (cleaned.length != 10) {
+                    return 'El celular debe tener exactamente 10 dígitos';
                   }
+
                   return null;
                 },
               ),
               const SizedBox(height: 16),
+
               ListTile(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -172,6 +211,7 @@ class _ReservaViewState extends State<ReservaView> {
                 },
               ),
               const SizedBox(height: 16),
+
               FutureBuilder<List<Map<String, dynamic>>>(
                 future: _obtenerHorasConEstado(controller),
                 builder: (context, snapshot) {
@@ -232,6 +272,7 @@ class _ReservaViewState extends State<ReservaView> {
                 },
               ),
               const SizedBox(height: 20),
+
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -257,6 +298,7 @@ class _ReservaViewState extends State<ReservaView> {
                 ),
               ),
               const SizedBox(height: 24),
+
               SizedBox(
                 height: 50,
                 child: ElevatedButton(
