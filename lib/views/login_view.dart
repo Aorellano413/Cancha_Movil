@@ -1,14 +1,11 @@
-// lib/views/login_view.dart
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../controllers/theme_controller.dart';
-import '../controllers/sedes_controller.dart';
 import '../routes/app_routes.dart';
-import '../utils/populate_firestore.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -23,310 +20,197 @@ class LoginView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-
-    final List<String> imagenes = [
-      "lib/images/1.jpg",
-      "lib/images/2.jpg",
-      "lib/images/3.jpg",
-      "lib/images/4.jpg",
-      "lib/images/5.jpg",
-      "lib/images/6.jpg",
-      "lib/images/7.jpg",
-    ];
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+    final themeCtrl = context.watch<ThemeController>();
+    final isDark = themeCtrl.isDark;
 
     return Scaffold(
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final h = constraints.maxHeight;
-            final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                "lib/images/fondo.jpg",
+                fit: BoxFit.cover,
+              ),
+            ),
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                child: Container(
+                  color: Colors.black.withOpacity(0.45),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Row(
+                children: [
+                  _DarkModeButton(),
+                  const SizedBox(width: 12),
+                  _SocialIcon(
+                    icon: FontAwesomeIcons.whatsapp,
+                    color: Colors.green,
+                    onTap: () => _abrirEnlace(
+                      "https://wa.me/573003525431",
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: h),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      height: h * 0.58,
-                      child: Stack(
-                        children: [
-                          CarouselSlider(
-                            options: CarouselOptions(
-                              height: double.infinity,
-                              autoPlay: true,
-                              autoPlayInterval: const Duration(seconds: 4),
-                              viewportFraction: 1.0,
-                              enableInfiniteScroll: true,
-                              scrollDirection: Axis.horizontal,
+            Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        height: 160,
+                        alignment: Alignment.center,
+                        child: Image.asset(
+                          "lib/images/inder.png",
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+    
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(36),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.fromLTRB(
+                              30,
+                              30,
+                              30,
+                              16 + bottomInset,
                             ),
-                            items: imagenes.map((imagen) {
-                              return Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  Image.asset(imagen, fit: BoxFit.cover),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.bottomCenter,
-                                        end: Alignment.topCenter,
-                                        colors: [
-                                          Colors.black.withOpacity(0.6),
-                                          Colors.transparent,
-                                        ],
+                            decoration: BoxDecoration(
+                              color: isDark 
+                                ? Colors.black.withOpacity(0.3)
+                                : Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(36),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 30,
+                                  offset: const Offset(0, 15),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  "Bienvenido a",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white.withOpacity(0.95),
+                                  ),
+                                ),
+                                Text(
+                                  "INDER VALLEDUPAR",
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1.2,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  "Tu mejor aliado para reservar en los mejores escenarios en Valledupar",
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    height: 1.4,
+                                    color: Colors.white.withOpacity(0.9),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF3546F0),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
+                                      elevation: 8,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                    ),
+                                    onPressed: () => Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.sedes,
+                                    ),
+                                    child: Text(
+                                      "Reservar Cancha",
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15,
                                       ),
                                     ),
                                   ),
-                                ],
-                              );
-                            }).toList(),
-                          ),
-                          // ====== ICONOS LATERALES: MODO OSCURO + REDES ======
-                          Positioned(
-                            top: 12,
-                            right: 12,
-                            child: Column(
-                              children: [
-                                _DarkModeButton(),
-                                const SizedBox(height: 12),
-                                _SocialIcon(
-                                  icon: FontAwesomeIcons.whatsapp,
-                                  color: Colors.green,
-                                  onTap: () =>
-                                      _abrirEnlace("https://wa.me/573003525431"),
                                 ),
                                 const SizedBox(height: 12),
-                                _SocialIcon(
-                                  icon: FontAwesomeIcons.instagram,
-                                  color: Colors.purple,
-                                  onTap: () => _abrirEnlace(
-                                      "https://www.instagram.com/reservasports_co"),
+
+                                TextButton(
+                                  onPressed: () => Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.loginAdmin,
+                                  ),
+                                  child: Text(
+                                    "Administrador",
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                    ),
+                                  ),
                                 ),
-                                const SizedBox(height: 12),
-                                _SocialIcon(
-                                  icon: FontAwesomeIcons.facebook,
-                                  color: Colors.blue,
-                                  onTap: () => _abrirEnlace(
-                                      "https://www.facebook.com/profile.php?id=61577803655371"),
+
+                                const SizedBox(height: 30),
+                                Text(
+                                  "© 2025 ReservaSports. Todos los derechos reservados.",
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.white.withOpacity(0.7),
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.fromLTRB(30, 30, 30, 16 + bottomInset),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                        borderRadius:
-                            const BorderRadius.vertical(top: Radius.circular(40)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: cs.shadow.withOpacity(0.08),
-                            blurRadius: 10,
-                            offset: const Offset(0, -3),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            "Bienvenido a",
-                            style: GoogleFonts.poppins(
-                              fontSize: 20,
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color
-                                  ?.withOpacity(0.8),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            "ReservaSports",
-                            style: GoogleFonts.poppins(
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
-                              color:
-                                  Theme.of(context).textTheme.bodyLarge?.color,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            "Tu mejor aliado para reservar las mejores canchas en Valledupar",
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.color
-                                  ?.withOpacity(0.8),
-                              height: 1.4,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Botón principal
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: cs.primary,
-                                foregroundColor: cs.onPrimary,
-                                elevation: 5,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                              onPressed: () =>
-                                  Navigator.pushNamed(context, AppRoutes.sedes),
-                              child: Text(
-                                "Reservar Cancha",
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          TextButton(
-                            onPressed: () => Navigator.pushNamed(
-                                context, AppRoutes.loginAdmin),
-                            child: Text(
-                              "Administrador",
-                              style: GoogleFonts.poppins(
-                                color: cs.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-
-                          // ====== PIE DE PÁGINA RESERVASPORTS ======
-                          const SizedBox(height: 30),
-                          Text(
-                            "© 2025 ReservaSports. Todos los derechos reservados.",
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  void _showLoadingDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text("Procesando..."),
-              ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showSuccessDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.green),
-            SizedBox(width: 8),
-            Text("Éxito"),
           ],
         ),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showErrorDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.error, color: Colors.red),
-            SizedBox(width: 8),
-            Text("Error"),
-          ],
-        ),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showConfirmDialog(
-    BuildContext context, {
-    required String title,
-    required String message,
-    required VoidCallback onConfirm,
-  }) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancelar"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onConfirm();
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text("Confirmar"),
-          ),
-        ],
       ),
     );
   }
 }
+
 class _SocialIcon extends StatelessWidget {
   final IconData icon;
   final Color color;
@@ -337,27 +221,32 @@ class _SocialIcon extends StatelessWidget {
     required this.color,
     required this.onTap,
   });
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(40),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: color.withOpacity(0.1),
-          border: Border.all(color: color.withOpacity(0.5)),
+          color: Colors.black.withOpacity(0.4),
+          border: Border.all(
+            color: color.withOpacity(0.6),
+            width: 2,
+          ),
         ),
         child: FaIcon(
           icon,
           color: color,
-          size: 22,
+          size: 20,
         ),
       ),
     );
   }
 }
+
 class _DarkModeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -366,17 +255,21 @@ class _DarkModeButton extends StatelessWidget {
 
     return InkWell(
       onTap: themeCtrl.toggle,
-      borderRadius: BorderRadius.circular(30),
+      borderRadius: BorderRadius.circular(40),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.35),
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: Colors.white24),
+          shape: BoxShape.circle,
+          color: Colors.black.withOpacity(0.4),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.3),
+            width: 1.5,
+          ),
         ),
         child: Icon(
           isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
           color: Colors.white,
+          size: 20,
         ),
       ),
     );

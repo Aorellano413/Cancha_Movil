@@ -1,5 +1,7 @@
 // lib/views/login_admin_view.dart
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
 import '../routes/app_routes.dart';
@@ -81,136 +83,200 @@ class _LoginAdminViewState extends State<LoginAdminView> {
     final bool isMobile = size.width < 700;
 
     return Scaffold(
-        backgroundColor: const Color(0xFFE6E9FF),
-        body: Stack(
-        children: [
-          // 🔹 Contenido principal
-          Center(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(
-                horizontal: isMobile ? 20 : 50,
-                vertical: isMobile ? 40 : 60,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            
+            Positioned.fill(
+              child: Image.asset(
+                "lib/images/fondo.jpg",
+                fit: BoxFit.cover,
               ),
-              child: Container(
-                width: isMobile ? double.infinity : 850,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 15,
-                      offset: Offset(0, 8),
-                    ),
-                  ],
+            ),
+            
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                child: Container(
+                  color: Colors.black.withOpacity(0.45),
                 ),
-                child: isMobile
-                    ? Padding(
-                        padding: const EdgeInsets.all(25),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.asset(
-                              'lib/images/logoReservaSports.jpg',
-                              height: size.height * 0.25,
-                              fit: BoxFit.contain,
+              ),
+            ),
+            Positioned(
+              top: 16,
+              left: 16,
+              child: InkWell(
+                onTap: () => Navigator.pop(context),
+                borderRadius: BorderRadius.circular(40),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black.withOpacity(0.4),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+            Center(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 24 : 50,
+                  vertical: isMobile ? 40 : 60,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: isMobile ? 420 : 850,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(36),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(36),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 30,
+                              offset: const Offset(0, 15),
                             ),
-                            const SizedBox(height: 25),
-                            _buildLoginForm(),
                           ],
                         ),
-                      )
-                    : Row(
-                        children: [
-                          Expanded(
-                            flex: 1,
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(16),
-                                  bottomLeft: Radius.circular(16),
+                        child: isMobile
+                            ? Padding(
+                                padding: const EdgeInsets.all(30),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image.asset(
+                                      'lib/images/admin.png',
+                                      height: size.height * 0.25,
+                                      fit: BoxFit.contain,
+                                    ),
+                                    const SizedBox(height: 25),
+                                    _buildLoginForm(),
+                                  ],
+                                ),
+                              )
+                            : IntrinsicHeight(
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 1,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(40),
+                                        child: Center(
+                                          child: Image.asset(
+                                            'lib/images/admin.png',
+                                            height: size.height * 0.5,
+                                            fit: BoxFit.contain,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      width: 1.5,
+                                      color: Colors.white.withOpacity(0.2),
+                                    ),
+                                    Expanded(
+                                      flex: 1,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 40,
+                                          vertical: 50,
+                                        ),
+                                        child: _buildLoginForm(),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              child: Center(
-                                child: Image.asset(
-                                  'lib/images/logoReservaSports.jpg',
-                                  height: size.height * 0.4,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 1,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 40, vertical: 60),
-                              child: _buildLoginForm(),
-                            ),
-                          ),
-                        ],
                       ),
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
-
-          // 🔹 Botón de retroceso flotante (arriba a la izquierda)
-          Positioned(
-            top: 40,
-            left: 20,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: Colors.black87, size: 26),
-              onPressed: () => Navigator.pop(context),
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.white,
-                shadowColor: Colors.black26,
-                elevation: 4,
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-
   Widget _buildLoginForm() {
     return Form(
       key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             "Inicio de Sesión",
-            style: TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             "Ingrese su correo y contraseña",
-            style: TextStyle(
-              color: Colors.grey,
+            style: GoogleFonts.poppins(
+              color: Colors.white.withOpacity(0.9),
               fontSize: 14,
             ),
           ),
           const SizedBox(height: 30),
-
-          // Email
           TextFormField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
+            style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.email_outlined),
+              prefixIcon: const Icon(Icons.email_outlined, color: Colors.white70),
               labelText: "Correo electrónico",
+              labelStyle: TextStyle(color: Colors.white.withOpacity(0.8)),
               filled: true,
-              fillColor: Colors.grey.shade100,
-              border: OutlineInputBorder(
+              fillColor: Colors.white.withOpacity(0.1),
+              enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+                borderSide: BorderSide(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 1.5,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Colors.white,
+                  width: 2,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Colors.redAccent,
+                  width: 1.5,
+                ),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Colors.redAccent,
+                  width: 2,
+                ),
               ),
             ),
             validator: (value) {
@@ -224,19 +290,20 @@ class _LoginAdminViewState extends State<LoginAdminView> {
             },
           ),
           const SizedBox(height: 20),
-
-          // Contraseña
           TextFormField(
             controller: _passController,
             obscureText: !_showPassword,
+            style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.lock_outline),
+              prefixIcon: const Icon(Icons.lock_outline, color: Colors.white70),
               labelText: "Contraseña",
+              labelStyle: TextStyle(color: Colors.white.withOpacity(0.8)),
               suffixIcon: IconButton(
                 icon: Icon(
                   _showPassword
                       ? Icons.visibility_off_outlined
                       : Icons.visibility_outlined,
+                  color: Colors.white70,
                 ),
                 onPressed: () {
                   setState(() {
@@ -245,10 +312,34 @@ class _LoginAdminViewState extends State<LoginAdminView> {
                 },
               ),
               filled: true,
-              fillColor: Colors.grey.shade100,
-              border: OutlineInputBorder(
+              fillColor: Colors.white.withOpacity(0.1),
+              enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+                borderSide: BorderSide(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 1.5,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Colors.white,
+                  width: 2,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Colors.redAccent,
+                  width: 1.5,
+                ),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Colors.redAccent,
+                  width: 2,
+                ),
               ),
             ),
             validator: (value) {
@@ -262,17 +353,17 @@ class _LoginAdminViewState extends State<LoginAdminView> {
             },
           ),
 
-          const SizedBox(height: 25),
-
-          // Botón de login
+          const SizedBox(height: 30),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3546F0),
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                elevation: 8,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(30),
                 ),
               ),
               onPressed: _isLoading ? null : _login,
@@ -285,104 +376,17 @@ class _LoginAdminViewState extends State<LoginAdminView> {
                         strokeWidth: 2,
                       ),
                     )
-                  : const Text(
+                  : Text(
                       "INGRESAR",
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
                       ),
                     ),
             ),
           ),
-
-          const SizedBox(height: 16),
-
-          // Recuperar contraseña
-          Center(
-            child: TextButton(
-              onPressed: _isLoading ? null : _mostrarRecuperarPassword,
-              child: const Text(
-                '¿Olvidaste tu contraseña?',
-                style: TextStyle(
-                  color: Color(0xFF3546F0),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
-  }
-
-  Future<void> _mostrarRecuperarPassword() async {
-    final emailCtrl = TextEditingController();
-
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Recuperar contraseña'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Ingrese su correo electrónico para recibir un enlace de recuperación.',
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: emailCtrl,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Correo electrónico',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.email),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (emailCtrl.text.trim().isEmpty) {
-                Navigator.pop(context);
-                _mostrarError('Ingrese un correo válido');
-                return;
-              }
-
-              Navigator.pop(context);
-
-              final authController = Provider.of<AuthController>(
-                context,
-                listen: false,
-              );
-
-              final resultado = await authController.recuperarPassword(
-                emailCtrl.text.trim(),
-              );
-
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(resultado['message']),
-                    backgroundColor: resultado['success']
-                        ? Colors.green
-                        : Colors.red,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              }
-            },
-            child: const Text('Enviar'),
-          ),
-        ],
-      ),
-    );
-
-    emailCtrl.dispose();
   }
 }

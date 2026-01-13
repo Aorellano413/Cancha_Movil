@@ -35,18 +35,15 @@ class LocationService {
     }
   }
 
-  /// Geocodificar usando OpenStreetMap Nominatim (funciona en Web)
   Future<Map<String, double>?> convertirDireccionACoordenadas(String direccion) async {
     if (kIsWeb) {
-      // Usar API HTTP para Web
+      
       return await _geocodificarConNominatim(direccion);
     } else {
-      // Usar paquete nativo para móvil
       return await _geocodificarNativo(direccion);
     }
   }
 
-  /// Geocodificación usando OpenStreetMap Nominatim API (Web compatible)
   Future<Map<String, double>?> _geocodificarConNominatim(String direccion) async {
     try {
       final direccionEncoded = Uri.encodeComponent(direccion);
@@ -74,8 +71,6 @@ class LocationService {
       return null;
     }
   }
-
-  /// Geocodificación nativa (solo móvil)
   Future<Map<String, double>?> _geocodificarNativo(String direccion) async {
     try {
       List<Location> locations = await locationFromAddress(direccion);
