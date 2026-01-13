@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-
 import 'controllers/theme_controller.dart';
 import 'controllers/sedes_controller.dart';
 import 'controllers/reserva_controller.dart';
 import 'controllers/canchas_controller.dart';
-import 'controllers/auth_controller.dart'; // ✅ IMPORTAR
+import 'controllers/auth_controller.dart'; 
 import 'theme/app_theme.dart';
 import 'routes/app_routes.dart';
 
@@ -27,13 +26,13 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => CanchasController()),
         ChangeNotifierProvider(create: (_) => AuthController()),
       ],
-      child: const ReservaSportsApp(),
+      child: const InderApp(),
     ),
   );
 }
 
-class ReservaSportsApp extends StatelessWidget {
-  const ReservaSportsApp({super.key});
+class InderApp extends StatelessWidget {
+  const InderApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +40,7 @@ class ReservaSportsApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'ReservaSports',
+      title: 'INDER - Valledupar',
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: themeCtrl.mode,
