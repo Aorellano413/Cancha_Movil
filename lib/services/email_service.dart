@@ -249,7 +249,7 @@ class EmailService {
     );
 
     final mensajeAdmin = Message()
-      ..from = Address(smtpUser, 'ReservaSports')
+      ..from = Address(smtpUser, 'INDER - VALLEDUPAR')
       ..recipients.add(correoAdmin)
       ..subject = 'Nueva reserva $numero — $fechaLegible $horaReserva'
       ..html = htmlAdmin;
