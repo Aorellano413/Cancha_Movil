@@ -78,7 +78,7 @@ class LoginView extends StatelessWidget {
                       ),
 
                       const SizedBox(height: 20),
-    
+
                       ClipRRect(
                         borderRadius: BorderRadius.circular(36),
                         child: BackdropFilter(
@@ -92,7 +92,7 @@ class LoginView extends StatelessWidget {
                               16 + bottomInset,
                             ),
                             decoration: BoxDecoration(
-                              color: isDark 
+                              color: isDark
                                 ? Colors.black.withOpacity(0.3)
                                 : Colors.white.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(36),
@@ -144,7 +144,7 @@ class LoginView extends StatelessWidget {
                                   width: double.infinity,
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF3546F0),
+                                      backgroundColor: const Color.from(alpha: 1, red: 0.208, green: 0.275, blue: 0.941),
                                       foregroundColor: Colors.white,
                                       padding: const EdgeInsets.symmetric(
                                         vertical: 16,

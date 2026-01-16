@@ -1,5 +1,6 @@
-// lib/views/canchas_view.dart (Vista genérica para cualquier sede)
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../controllers/canchas_controller.dart';
 import '../controllers/reserva_controller.dart';
@@ -38,243 +39,277 @@ class _CanchasViewState extends State<CanchasView> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
+    final isDesktop = width > 900;
+    final isTablet = width > 600 && width <= 900;
+
     return ChangeNotifierProvider.value(
       value: _canchasController,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(widget.sedeNombre),
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        body: Consumer2<CanchasController, ReservaController>(
-          builder: (context, canchasController, reservaController, child) {
-            if (canchasController.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset("lib/images/fondo.jpg", fit: BoxFit.cover),
+            ),
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                child: Container(color: Colors.black.withOpacity(0.5)),
+              ),
+            ),
+            SafeArea(
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(child: _buildCustomAppBar()),
 
-            if (canchasController.error != null) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Error al cargar canchas',
-                      style: TextStyle(fontSize: 18, color: Colors.red.shade700),
+                  SliverPadding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isDesktop ? 40 : 20,
+                      vertical: 20,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      canchasController.error!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: () => canchasController.cargarCanchasPorSede(widget.sedeId),
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Reintentar'),
-                    ),
-                  ],
-                ),
-              );
-            }
+                    sliver: Consumer2<CanchasController, ReservaController>(
+                      builder: (context, canchasController, reservaController, child) {
+                        if (canchasController.isLoading) {
+                          return const SliverToBoxAdapter(
+                            child: Center(
+                              child: CircularProgressIndicator(color: Colors.white),
+                            ),
+                          );
+                        }
 
-            if (canchasController.canchas.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.sports_soccer, size: 64, color: Colors.grey.shade400),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No hay canchas disponibles',
-                      style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Pronto habrá más opciones',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ],
-                ),
-              );
-            }
+                        if (canchasController.error != null) {
+                          return SliverToBoxAdapter(
+                            child: Center(
+                              child: Text(
+                                "Error al cargar canchas",
+                                style: GoogleFonts.poppins(color: Colors.white),
+                              ),
+                            ),
+                          );
+                        }
 
-            return RefreshIndicator(
-              onRefresh: () => canchasController.cargarCanchasPorSede(widget.sedeId),
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  Text(
-                    "¡Reserva tu cancha en ${widget.sedeNombre}!",
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        if (canchasController.canchas.isEmpty) {
+                          return SliverToBoxAdapter(
+                            child: Center(
+                              child: Text(
+                                "No hay canchas disponibles",
+                                style: GoogleFonts.poppins(color: Colors.white),
+                              ),
+                            ),
+                          );
+                        }
+
+                        return SliverGrid(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final cancha = canchasController.canchas[index];
+                              return _buildCanchaCard(
+                                context,
+                                cancha,
+                                reservaController,
+                              );
+                            },
+                            childCount: canchasController.canchas.length,
+                          ),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: isDesktop ? 3 : (isTablet ? 2 : 1),
+                            mainAxisSpacing: 20,
+                            crossAxisSpacing: 20,
+                            childAspectRatio:
+                                isDesktop ? 1.15 : (isTablet ? 1.05 : 0.90),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                  const SizedBox(height: 20),
-                  ...canchasController.canchas.map((cancha) {
-                    return _buildCard(
-                      context,
-                      cancha: cancha,
-                      reservaController: reservaController,
-                    );
-                  }),
                 ],
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildCard(
-    BuildContext context, {
-    required CanchaModel cancha,
-    required ReservaController reservaController,
-  }) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 20),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      elevation: 3,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            child: _buildCanchaImage(cancha.image),
+  Widget _buildCanchaCard(
+    BuildContext context,
+    CanchaModel cancha,
+    ReservaController reservaController,
+  ) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1.5,
+            ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16),
+          child: Material(
+            color: Colors.transparent,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  cancha.title,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
+                _buildCanchaImage(cancha.image),
+
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        Text(
+                          cancha.title,
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.access_time, size: 18, color: Colors.grey),
-                            const SizedBox(width: 8),
-                            Text(
-                              cancha.horario,
-                              style: const TextStyle(color: Colors.grey, fontSize: 14),
+                            Row(
+                              children: [
+                                const Icon(Icons.access_time,
+                                    size: 16, color: Colors.white70),
+                                const SizedBox(width: 6),
+                                Text(
+                                  cancha.horario,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 6),
+
+                            Row(
+                              children: [
+                                const Icon(Icons.sports_soccer,
+                                    size: 16, color: Colors.white70),
+                                const SizedBox(width: 6),
+                                Text(
+                                  "Jugadores: ${cancha.jugadores}",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Icon(Icons.sports_soccer, size: 18, color: Colors.grey),
-                            const SizedBox(width: 8),
-                            Text(
-                              "Jugadores: ${cancha.jugadores}",
-                              style: const TextStyle(color: Colors.grey, fontSize: 14),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color.fromARGB(204, 12, 15, 172).withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Text(
+                                cancha.price,
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
                             ),
+
+                            ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green.shade700,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              onPressed: () {
+                                reservaController.setTipoCancha(cancha.tipo);
+                                reservaController.setCanchaId(cancha.id);
+                                reservaController.setSedeId(widget.sedeId);
+
+                                Navigator.pushNamed(context, AppRoutes.reserva);
+                              },
+                              icon: const Icon(Icons.event_available, size: 18),
+                              label: const Text("Reservar"),
+                            )
                           ],
-                        ),
+                        )
                       ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        cancha.price,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 45,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () {
-                      reservaController.setTipoCancha(cancha.tipo);
-                      reservaController.setCanchaId(cancha.id);
-                      reservaController.setSedeId(widget.sedeId);
-                      Navigator.pushNamed(context, AppRoutes.reserva);
-                    },
-                    icon: const Icon(Icons.event_available),
-                    label: const Text(
-                      "Reservar",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
                   ),
-                ),
+                )
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  // ✅ AGREGAR ESTE MÉTODO AL FINAL DE LA CLASE _CanchasViewState:
   Widget _buildCanchaImage(String imagePath) {
-    // URLs de Firebase Storage
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-      return Image.network(
-        imagePath,
-        height: 180,
-        width: double.infinity,
-        fit: BoxFit.cover,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Container(
-            height: 180,
-            color: Colors.grey.shade300,
-            child: const Center(child: CircularProgressIndicator()),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return _placeholderImage();
-        },
-      );
-    }
-    
-    // Assets locales
-    return Image.asset(
-      imagePath,
-      height: 180,
-      width: double.infinity,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) {
-        return _placeholderImage();
-      },
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(24),
+        ),
+        child: imagePath.startsWith('http')
+            ? Image.network(
+                imagePath,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              )
+            : Image.asset(
+                imagePath,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+      ),
     );
   }
 
-  Widget _placeholderImage() {
-    return Container(
-      height: 180,
-      color: Colors.grey.shade300,
-      child: const Center(
-        child: Icon(Icons.sports_soccer, size: 64, color: Colors.grey),
+  Widget _buildCustomAppBar() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              widget.sedeNombre,
+              style: GoogleFonts.poppins(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

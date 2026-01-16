@@ -86,14 +86,14 @@ class _LoginAdminViewState extends State<LoginAdminView> {
       body: SafeArea(
         child: Stack(
           children: [
-            
+
             Positioned.fill(
               child: Image.asset(
                 "lib/images/fondo.jpg",
                 fit: BoxFit.cover,
               ),
             ),
-            
+
             Positioned.fill(
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
@@ -163,7 +163,7 @@ class _LoginAdminViewState extends State<LoginAdminView> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Image.asset(
-                                      'lib/images/admin.png',
+                                      'lib/images/inder.png',
                                       height: size.height * 0.25,
                                       fit: BoxFit.contain,
                                     ),
@@ -181,7 +181,7 @@ class _LoginAdminViewState extends State<LoginAdminView> {
                                         padding: const EdgeInsets.all(40),
                                         child: Center(
                                           child: Image.asset(
-                                            'lib/images/admin.png',
+                                            'lib/images/inder.png',
                                             height: size.height * 0.5,
                                             fit: BoxFit.contain,
                                           ),
