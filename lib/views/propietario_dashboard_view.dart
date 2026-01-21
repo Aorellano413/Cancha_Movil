@@ -8,7 +8,7 @@ import '../controllers/canchas_controller.dart';
 import '../services/firestore_service.dart';
 import '../routes/app_routes.dart';
 import '../widgets/estadistica_card.dart';
-import '../widgets/reserva_detalle_sheet.dart'; // ✅ IMPORTAR
+import '../widgets/reserva_detalle_sheet.dart';
 
 class PropietarioDashboardView extends StatefulWidget {
   const PropietarioDashboardView({super.key});
@@ -30,8 +30,7 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
   bool _loadingReservas = true;
   bool _loadingEstadisticas = true;
 
-  // Filtro de tiempo
-  String _filtroTiempo = 'hoy'; // hoy, semana, mes, año
+  String _filtroTiempo = 'hoy';
 
   @override
   void initState() {
@@ -45,16 +44,14 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
     _sedeId = authController.currentUser?.sedeAsignada;
 
     if (_sedeId != null) {
-      // Obtener nombre de la sede
+
       final sedes = await _firestore.getSedes();
       final sede = sedes.firstWhere((s) => s.id == _sedeId, orElse: () => sedes.first);
       setState(() => _sedeName = sede.title);
 
-      // Cargar canchas de la sede
       final canchasController = Provider.of<CanchasController>(context, listen: false);
       await canchasController.cargarCanchasPorSede(_sedeId!);
 
-      // Cargar datos
       await _cargarDatos();
     }
   }
@@ -82,8 +79,8 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
     setState(() => _loadingReservas = true);
     try {
       final todasReservas = await _firestore.getReservasCompletasPorSede(_sedeId!);
-      
-      // ✅ FILTRO CORREGIDO: Comparar solo año, mes y día
+
+
       final reservasFiltradas = todasReservas.where((reserva) {
         final fechaReserva = reserva['fechaReserva'];
         if (fechaReserva == null) return false;
@@ -96,23 +93,23 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
         }
 
         final ahora = DateTime.now();
-        
+
         switch (_filtroTiempo) {
           case 'hoy':
-            // ✅ Comparar solo año, mes y día (sin hora)
+
             return fecha.year == ahora.year &&
                    fecha.month == ahora.month &&
                    fecha.day == ahora.day;
           case 'semana':
-            // ✅ Últimos 7 días (inclusive hoy)
+
             final inicioSemana = DateTime(ahora.year, ahora.month, ahora.day).subtract(Duration(days: 7));
             final fechaSolo = DateTime(fecha.year, fecha.month, fecha.day);
             return fechaSolo.isAfter(inicioSemana) || fechaSolo.isAtSameMomentAs(inicioSemana);
           case 'mes':
-            // ✅ Mes actual completo
+
             return fecha.year == ahora.year && fecha.month == ahora.month;
           case 'año':
-            // ✅ Año actual completo
+
             return fecha.year == ahora.year;
           default:
             return true;
@@ -137,7 +134,7 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
     setState(() => _loadingEstadisticas = true);
     try {
       final stats = await _firestore.getEstadisticasPorSede(_sedeId!);
-      
+
       if (mounted) {
         setState(() {
           _estadisticas = stats;
@@ -168,7 +165,6 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
     );
   }
 
-  // ✅ NUEVO: Mostrar detalle de reserva
   Future<void> _mostrarDetalleReserva(Map<String, dynamic> reserva) async {
     await showModalBottomSheet(
       context: context,
@@ -215,7 +211,6 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
       );
     }
 
-    // Contar reservas por estado
     int pendientes = 0;
     int pagadas = 0;
     int canceladas = 0;
@@ -359,12 +354,12 @@ class _PropietarioDashboardViewState extends State<PropietarioDashboardView> {
               const Center(child: CircularProgressIndicator())
             else
               _buildEstadisticas(),
-            
+
             const SizedBox(height: 24),
 
             // Gráfica
             _buildGraficaReservas(),
-            
+
             const SizedBox(height: 24),
 
             // Reservas recientes
@@ -667,10 +662,10 @@ class _ReservaCard extends StatelessWidget {
     final nombre = reserva['nombreCompleto'] ?? 'Sin nombre';
     final inicial = (nombre.isNotEmpty ? nombre.trim()[0] : '?').toUpperCase();
     final hora = reserva['horaReserva'] ?? 'Sin hora';
-    final cancha = reserva['cancha'] != null 
-        ? reserva['cancha']['title'] ?? 'Sin cancha' 
+    final cancha = reserva['cancha'] != null
+        ? reserva['cancha']['title'] ?? 'Sin cancha'
         : 'Sin cancha';
-    
+
     final estado = reserva['estado'] ?? 'pendiente';
     Color estadoColor;
     switch (estado) {

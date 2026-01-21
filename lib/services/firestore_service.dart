@@ -62,7 +62,7 @@ class FirestoreService {
         .collection('canchas')
         .where('sedeId', isEqualTo: sedeId)
         .get();
-    
+
     return snapshot.docs.map((doc) {
       final data = doc.data();
       data['id'] = doc.id;
@@ -90,7 +90,7 @@ class FirestoreService {
     data['sedeId'] = sedeId;
     data['estado'] = 'pendiente';
     data['createdAt'] = FieldValue.serverTimestamp();
-    
+
     final docRef = await _db.collection('reservas').add(data);
     return docRef.id;
   }
@@ -130,7 +130,7 @@ class FirestoreService {
         .where('correoElectronico', isEqualTo: correo)
         .orderBy('createdAt', descending: true)
         .get();
-    
+
     return snapshot.docs.map((doc) {
       final data = doc.data();
       data['id'] = doc.id;
@@ -155,7 +155,7 @@ class FirestoreService {
     required String horaReserva,
   }) async {
     try {
- 
+
       final inicioDelDia = DateTime(fecha.year, fecha.month, fecha.day);
       final finDelDia = DateTime(fecha.year, fecha.month, fecha.day, 23, 59, 59);
 
@@ -166,7 +166,7 @@ class FirestoreService {
 
       for (var doc in snapshot.docs) {
         final data = doc.data();
-  
+
         final Timestamp? fechaTimestamp = data['fechaReserva'];
         final String? horaDoc = data['horaReserva'];
         final String? estadoDoc = data['estado'];
@@ -181,20 +181,20 @@ class FirestoreService {
                           fechaDoc.month == fecha.month &&
                           fechaDoc.day == fecha.day;
 
-        if (mismaFecha && 
-            horaDoc == horaReserva && 
+        if (mismaFecha &&
+            horaDoc == horaReserva &&
             (estadoDoc == 'pendiente' || estadoDoc == 'confirmada' || estadoDoc == 'pagado')) {
-     
+
           return false;
         }
       }
 
-      
+
       return true;
     } catch (e) {
-      
+
       print('❌ Error al verificar disponibilidad: $e');
-      
+
       return false;
     }
   }
@@ -262,7 +262,7 @@ class FirestoreService {
     }
   }
 
-  
+
   Future<List<Map<String, dynamic>>> getReservasCompletas() async {
     try {
       final reservasSnapshot = await _db
@@ -282,7 +282,7 @@ class FirestoreService {
                 .collection('sedes')
                 .doc(reservaData['sedeId'])
                 .get();
-            
+
             if (sedeDoc.exists) {
               reservaData['sede'] = sedeDoc.data();
             } else {
@@ -306,7 +306,7 @@ class FirestoreService {
                 .collection('canchas')
                 .doc(reservaData['canchaId'])
                 .get();
-            
+
             if (canchaDoc.exists) {
               reservaData['cancha'] = canchaDoc.data();
             } else {

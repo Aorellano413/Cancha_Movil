@@ -1,4 +1,5 @@
 // lib/views/admin_dashboard_view.dart
+import '../services/pdf_reservas_service.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -35,7 +36,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
     super.initState();
     _cargarDatos();
     _iniciarCronometro();
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<SedesController>(context, listen: false).escucharSedes();
     });
@@ -184,53 +185,53 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
 
     for (var reserva in reservasRecientes) {
       String sede = 'Sin sede';
-      
+
       if (reserva['sede'] != null) {
         if (reserva['sede'] is Map) {
-          sede = reserva['sede']['nombre'] ?? 
-                 reserva['sede']['name'] ?? 
-                 reserva['sede']['title'] ?? 
+          sede = reserva['sede']['nombre'] ??
+                 reserva['sede']['name'] ??
+                 reserva['sede']['title'] ??
                  'Sin sede';
         } else if (reserva['sede'] is String) {
           sede = reserva['sede'];
         }
       }
-      
+
       if (conteo.containsKey(sede)) {
         conteo[sede] = conteo[sede]! + 1;
       } else {
         conteo[sede] = 1;
       }
     }
-    
+
     return conteo;
   }
   List<Color> _getSedeColors() {
     return [
-      const Color(0xFF0083B0), 
-      const Color(0xFF00BCD4), 
+      const Color(0xFF0083B0),
+      const Color(0xFF00BCD4),
       const Color(0xFF43A047),
       const Color(0xFFFF6F00),
       const Color(0xFF8E24AA),
-      const Color(0xFFE91E63), 
+      const Color(0xFFE91E63),
       const Color(0xFF3F51B5),
-      const Color(0xFFFFC107), 
-      const Color(0xFF009688), 
-      const Color(0xFFD32F2F), 
+      const Color(0xFFFFC107),
+      const Color(0xFF009688),
+      const Color(0xFFD32F2F),
     ];
   }
 
   String _abreviarNombreSede(String nombre) {
- 
+
     if (nombre.length <= 15) return nombre;
-    
+
     final palabras = nombre.split(' ');
     if (palabras.length > 1) {
- 
+
       if (palabras[0].toLowerCase() == 'sede' && palabras.length > 2) {
         return palabras.sublist(2).join(' ');
       }
-  
+
       return palabras.take(2).join(' ');
     }
 
@@ -445,29 +446,50 @@ Widget _buildGraficaReservasPorSede() {
         style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.people, color: Colors.white),
-          onPressed: () {
-            Navigator.pushNamed(context, AppRoutes.superAdminUsuarios);
-          },
-          tooltip: 'Gestión de usuarios',
-        ),
-        IconButton(
-          icon: const Icon(Icons.refresh, color: Colors.white),
-          onPressed: () async {
-            await _cargarDatos();
-            await Provider.of<SedesController>(context, listen: false).cargarSedes();
-            _mostrarSnackbar('Datos actualizados');
-          },
-          tooltip: 'Actualizar datos',
-        ),
-        TextButton.icon(
-          onPressed: _logout,
-          icon: const Icon(Icons.logout, color: Colors.white),
-          label: const Text("Cerrar sesión", style: TextStyle(color: Colors.white)),
-        ),
-        const SizedBox(width: 8),
-      ],
+  IconButton(
+    icon: const Icon(Icons.people, color: Colors.white),
+    onPressed: () {
+      Navigator.pushNamed(context, AppRoutes.superAdminUsuarios);
+    },
+    tooltip: 'Gestión de usuarios',
+  ),
+
+IconButton(
+  icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+  tooltip: 'Exportar reservas a PDF',
+  onPressed: () async {
+    try {
+      final pdfService = PdfReservasService();
+      await pdfService.generarPdfReservas();
+      _mostrarSnackbar('PDF generado correctamente');
+    } catch (e) {
+      _mostrarSnackbar('Error al generar PDF: $e');
+    }
+  },
+),
+
+
+  IconButton(
+    icon: const Icon(Icons.refresh, color: Colors.white),
+    onPressed: () async {
+      await _cargarDatos();
+      await Provider.of<SedesController>(context, listen: false).cargarSedes();
+      _mostrarSnackbar('Datos actualizados');
+    },
+    tooltip: 'Actualizar datos',
+  ),
+
+  TextButton.icon(
+    onPressed: _logout,
+    icon: const Icon(Icons.logout, color: Colors.white),
+    label: const Text(
+      "Cerrar sesión",
+      style: TextStyle(color: Colors.white),
+    ),
+  ),
+  const SizedBox(width: 8),
+],
+
     );
   }
 
