@@ -12,6 +12,7 @@ import '../widgets/sede_card.dart';
 import '../widgets/reserva_item.dart';
 import '../widgets/reserva_detalle_sheet.dart';
 import '../widgets/sede_form_sheet.dart';
+import 'package:intl/intl.dart';
 
 class AdminDashboardView extends StatefulWidget {
   const AdminDashboardView({super.key});
@@ -59,6 +60,93 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
     ]);
   }
 
+  Future<void> _mostrarDialogoFechas(BuildContext context) async {
+  DateTime? fechaInicio;
+  DateTime? fechaFin;
+
+  await showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('Seleccionar rango de fechas'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+
+                ListTile(
+                  title: Text(
+                    fechaInicio == null
+                        ? 'Fecha inicio'
+                        : 'Inicio: ${DateFormat('dd/MM/yyyy').format(fechaInicio!)}',
+                  ),
+                  trailing: const Icon(Icons.calendar_month),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2100),
+                    );
+                    if (picked != null) {
+                      setState(() => fechaInicio = picked);
+                    }
+                  },
+                ),
+
+
+                ListTile(
+                  title: Text(
+                    fechaFin == null
+                        ? 'Fecha fin'
+                        : 'Fin: ${DateFormat('dd/MM/yyyy').format(fechaFin!)}',
+                  ),
+                  trailing: const Icon(Icons.calendar_month),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2100),
+                    );
+                    if (picked != null) {
+                      setState(() => fechaFin = picked);
+                    }
+                  },
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                child: const Text('Cancelar'),
+                onPressed: () => Navigator.pop(context),
+              ),
+              ElevatedButton(
+                child: const Text('Generar PDF'),
+                onPressed: () async {
+                  if (fechaInicio == null || fechaFin == null) return;
+
+                  final pdfService = PdfReservasService();
+                  await pdfService.generarPdfReservas(
+                    fechaInicio: fechaInicio!,
+                    fechaFin: fechaFin!.add(
+                      const Duration(hours: 23, minutes: 59, seconds: 59),
+                    ),
+                  );
+
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
+
   Future<void> _cargarReservas() async {
     setState(() => _loadingReservas = true);
     try {
@@ -90,6 +178,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
       if (mounted) setState(() => _loadingEstadisticas = false);
     }
   }
+
 
   @override
   void dispose() {
@@ -306,7 +395,7 @@ Widget _buildGraficaReservasPorSede() {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      // Header (nuevo título)
+
       Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -349,7 +438,6 @@ Widget _buildGraficaReservasPorSede() {
 
       const SizedBox(height: 20),
 
-      // Tarjeta con el PieChart (SIN leyenda inferior)
       Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
@@ -457,17 +545,10 @@ Widget _buildGraficaReservasPorSede() {
 IconButton(
   icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
   tooltip: 'Exportar reservas a PDF',
-  onPressed: () async {
-    try {
-      final pdfService = PdfReservasService();
-      await pdfService.generarPdfReservas();
-      _mostrarSnackbar('PDF generado correctamente');
-    } catch (e) {
-      _mostrarSnackbar('Error al generar PDF: $e');
-    }
+  onPressed: () {
+    _mostrarDialogoFechas(context);
   },
 ),
-
 
   IconButton(
     icon: const Icon(Icons.refresh, color: Colors.white),
